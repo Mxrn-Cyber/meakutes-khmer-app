@@ -8,8 +8,12 @@ from app.models.media import Media
 from app.models.review import Review
 from app.models.user import User
 from app.schemas.destination import DestinationCreate, DestinationOut, DestinationUpdate
-from app.security import get_current_user, require_role
+from app.security import get_current_user, get_current_user_optional, require_role
 from app.utils.slugify import unique_slug
+
+def _is_staff(user: User | None) -> bool:
+    return bool(user and (user.has_role("admin") or user.has_role("editor")))
+
 
 router = APIRouter(prefix="/api/destinations", tags=["destinations"])
 
@@ -57,7 +61,10 @@ def list_destinations(
     q: str | None = Query(default=None, description="Search text over name/description"),
     status_filter: str | None = Query(default="published", alias="status"),
     db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
 ):
+    if not _is_staff(user):
+        status_filter = "published"  # drafts are for the admin panel only
     query = db.query(Destination)
     if status_filter and status_filter != "all":
         query = query.filter(Destination.status == status_filter)
@@ -73,7 +80,11 @@ def list_destinations(
 
 
 @router.get("/{slug_or_id}", response_model=DestinationOut)
-def get_destination(slug_or_id: str, db: Session = Depends(get_db)):
+def get_destination(
+    slug_or_id: str,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+):
     """Accepts either the slug ("angkor-wat") or the numeric id (for old /trip/:id links)."""
     query = db.query(Destination)
     destination = (
@@ -81,7 +92,7 @@ def get_destination(slug_or_id: str, db: Session = Depends(get_db)):
         if slug_or_id.isdigit()
         else query.filter(Destination.slug == slug_or_id).first()
     )
-    if not destination:
+    if not destination or (destination.status != "published" and not _is_staff(user)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
     return _to_out(db, destination)
 

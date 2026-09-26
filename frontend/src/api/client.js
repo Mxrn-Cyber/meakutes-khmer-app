@@ -102,6 +102,11 @@ export const api = {
     request(`/api/reviews/${id}/moderate${toQueryString({ new_status: newStatus })}`, { method: "PATCH" }),
   deleteReview: (id) => request(`/api/reviews/${id}`, { method: "DELETE" }),
 
+  // ---- comments ----
+  listComments: (target) => request(`/api/comments${toQueryString(target)}`),
+  createComment: (payload) => request("/api/comments", { method: "POST", body: payload }),
+  deleteComment: (id) => request(`/api/comments/${id}`, { method: "DELETE" }),
+
   // ---- favorites ----
   listFavorites: () => request("/api/favorites"),
   addFavorite: (destinationId) => request(`/api/favorites/${destinationId}`, { method: "POST" }),

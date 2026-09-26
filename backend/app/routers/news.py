@@ -5,8 +5,12 @@ from app.database import get_db
 from app.models.news import NewsEvent
 from app.models.user import User
 from app.schemas.news import NewsEventCreate, NewsEventOut, NewsEventUpdate
-from app.security import require_role
+from app.security import get_current_user_optional, require_role
 from app.utils.slugify import unique_slug
+
+def _is_staff(user: User | None) -> bool:
+    return bool(user and (user.has_role("admin") or user.has_role("editor")))
+
 
 router = APIRouter(prefix="/api/news", tags=["news"])
 
@@ -15,7 +19,10 @@ router = APIRouter(prefix="/api/news", tags=["news"])
 def list_news(
     status_filter: str | None = Query(default="published", alias="status"),
     db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
 ):
+    if not _is_staff(user):
+        status_filter = "published"  # drafts are for the admin panel only
     query = db.query(NewsEvent)
     if status_filter and status_filter != "all":
         query = query.filter(NewsEvent.status == status_filter)
@@ -23,9 +30,13 @@ def list_news(
 
 
 @router.get("/{slug}", response_model=NewsEventOut)
-def get_news(slug: str, db: Session = Depends(get_db)):
+def get_news(
+    slug: str,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+):
     item = db.query(NewsEvent).filter(NewsEvent.slug == slug).first()
-    if not item:
+    if not item or (item.status != "published" and not _is_staff(user)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "News item not found")
     return item
 

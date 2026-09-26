@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import { useState, useEffect, useRef } from "react";
+import CommentsPanel from "../components/CommentsPanel";
 
 function Article() {
   const { id } = useParams();
@@ -452,6 +453,7 @@ function Article() {
           </div>
         </div>
       </section>
+      <CommentsPanel newsEventId={item.id} />
       {relatedEvents.length > 0 && (
         <section className="py-16 px-6">
           <div className="max-w-7xl mx-auto">

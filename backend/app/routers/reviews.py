@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.destination import Destination
 from app.models.review import Review
 from app.models.user import User
 from app.schemas.review import ReviewCreate, ReviewOut
@@ -42,15 +43,24 @@ def create_or_update_review(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
+    if not db.get(Destination, payload.destination_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+
     existing = (
         db.query(Review)
         .filter(Review.destination_id == payload.destination_id, Review.user_id == user.id)
         .first()
     )
     if existing:
+        if existing.status == "removed":
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "Your review for this place was removed by a moderator"
+            )
         existing.rating = payload.rating
-        existing.comment = payload.comment
-        existing.status = "published"
+        # A star click from a card sends only a rating; keep the written text.
+        if "comment" in payload.model_fields_set:
+            existing.comment = payload.comment
+        # Keep "flagged" as it is so moderators still see it.
         review = existing
     else:
         review = Review(

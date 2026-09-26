@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.database import SessionLocal
 from app.models.user import Role
-from app.routers import auth, destinations, favorites, media, news, reviews, users
+from app.routers import auth, comments, destinations, favorites, media, news, reviews, users
 from app.routers.taxonomy import categories_router, tags_router
 
 settings = get_settings()
@@ -32,6 +32,7 @@ app.include_router(tags_router)
 app.include_router(news.router)
 app.include_router(media.router)
 app.include_router(reviews.router)
+app.include_router(comments.router)
 app.include_router(favorites.router)
 app.include_router(users.router)
 
