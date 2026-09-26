@@ -41,7 +41,8 @@ def _set_session_cookie(response: Response, token: str) -> None:
         key=settings.session_cookie_name,
         value=token,
         httponly=True,
-        samesite="lax",
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
         max_age=settings.session_expire_minutes * 60,
         path="/",
     )
@@ -142,7 +143,12 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     raw_token = request.cookies.get(settings.session_cookie_name)
     if raw_token:
         revoke_session(db, raw_token)
-    response.delete_cookie(settings.session_cookie_name, path="/")
+    response.delete_cookie(
+        settings.session_cookie_name,
+        path="/",
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+    )
 
 
 @router.get("/me", response_model=UserOut)

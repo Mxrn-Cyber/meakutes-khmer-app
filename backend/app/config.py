@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     secret_key: str = "dev-only-change-me"
     session_cookie_name: str = "mk_session"
     session_expire_minutes: int = 60 * 24 * 30  # 30 days
+    # Production (HTTPS) must set COOKIE_SECURE=true.
+    cookie_secure: bool = False
+    cookie_samesite: str = "lax"
 
     google_client_id: str = ""
 

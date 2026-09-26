@@ -1,0 +1,31 @@
+# Render Blueprint for the Meakutes-Khmer API.
+# Render dashboard -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: meakutes-khmer-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # Run migrations on every deploy, then start the API.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: lax
+      - key: MEDIA_ROOT
+        value: ./media
+      - key: MEDIA_URL_PREFIX
+        value: /media

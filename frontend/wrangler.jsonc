@@ -1,7 +1,18 @@
 {
   "name": "meakutes-khmer-frontend",
+  "main": "worker/index.js",
   "compatibility_date": "2025-05-31",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Serve index.html for unknown paths so React Router handles /trip/12 etc.
+    "not_found_handling": "single-page-application",
+    // The Worker runs first so /api, /auth, /media reach the backend
+    // instead of falling through to index.html.
+    "run_worker_first": true
+  },
+  "vars": {
+    // Change to your Render service URL.
+    "BACKEND_URL": "https://meakutes-khmer-api.onrender.com"
   }
 }

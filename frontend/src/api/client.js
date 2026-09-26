@@ -3,7 +3,9 @@
 // httpOnly session cookie on login/register, so every request is sent with
 // credentials: "include" and there is no token to manage on the client.
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+// Empty string in production: the Cloudflare Worker proxies /api, /auth and
+// /media to the backend, so the session cookie stays on the site's own domain.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 class ApiError extends Error {
   constructor(status, message, details) {
