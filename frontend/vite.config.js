@@ -6,7 +6,6 @@ export default defineConfig({
   resolve: {
     extensions: [".js", ".jsx", ".ts", ".tsx"],
     alias: {
-      "firebase/firestore": "firebase/firestore",
       "@": path.resolve(__dirname, "src"),
       assetsInclude: ["/*.png", "/.jpg", "**/.jpeg", "*/.svg"],
       server: {

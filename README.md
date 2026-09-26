@@ -23,11 +23,15 @@ You need two terminals: one for the backend, one for the frontend.
 
 ```bash
 cd backend
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # then fill in real values
-docker compose up -d          # starts MySQL on localhost:3306
-alembic upgrade head          # creates all the tables
+cp .env.example .env          # then set SECRET_KEY
+
+# Create the database and user in the MySQL you already have:
+mysql -u root -p < seed/setup_mysql.sql
+# (No MySQL installed? `docker compose up -d` starts one instead.)
+
+alembic upgrade head          # creates all 17 tables
 uvicorn app.main:app --reload # http://localhost:8000
 ```
 
@@ -90,9 +94,13 @@ WHERE u.email = 'you@example.com' AND r.name = 'admin';
 
 After that, manage every other account from the Users & Roles page.
 
-## Still to do
+## Accounts and passwords
 
-`frontend/src/pages/Profile.jsx`, `ForgotPassword.jsx` and `ResetPassword.jsx`
-still use Firebase, along with `frontend/src/firebase.js`. Everything else runs on
-the new backend. Once those three are migrated, Firebase and the leftover
-`frontend/src/pages/data/*.js` files can be deleted.
+Firebase is gone; the backend owns sign-in. From `/profile` a signed-in user can
+change their name and phone, change their email address (which requires their
+current password, since email is what signs them in), change their password, and
+upload a profile photo. Photos go to `backend/media/avatars/` and stay out of the
+admin image library.
+
+There is no self-service password reset. An admin resets a locked-out user's
+password directly — see [TESTING.md](TESTING.md) for the snippet.

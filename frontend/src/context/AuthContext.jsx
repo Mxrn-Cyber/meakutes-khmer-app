@@ -63,6 +63,19 @@ export const AuthProvider = ({ children }) => {
     return me;
   }, []);
 
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    await api.changePassword({
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+  }, []);
+
+  const uploadAvatar = useCallback(async (file) => {
+    const me = await api.uploadAvatar(file);
+    setUser(me);
+    return me;
+  }, []);
+
   const isAdmin = Boolean(user?.roles?.includes("admin"));
   const isEditor = isAdmin || Boolean(user?.roles?.includes("editor"));
 
@@ -78,6 +91,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     refresh,
     updateProfile,
+    changePassword,
+    uploadAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

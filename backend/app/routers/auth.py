@@ -1,27 +1,36 @@
 import datetime
+import uuid
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.models.media import Media
 from app.models.user import OAuthAccount, Role, User
 from app.schemas.auth import (
+    ChangePasswordRequest,
     GoogleLoginRequest,
     LoginRequest,
     RegisterRequest,
     UpdateProfileRequest,
     UserOut,
 )
+from app.models.user import Session as SessionModel
 from app.security import (
+    _hash_token,
     create_session,
     get_current_user,
     hash_password,
     revoke_session,
     verify_password,
 )
+
+AVATAR_ALLOWED_TYPES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
+AVATAR_MAX_BYTES = 4 * 1024 * 1024
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()
@@ -153,6 +162,108 @@ def update_me(
             setattr(user, field, value)
     if payload.first_name or payload.last_name:
         user.display_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+
+    new_email = (payload.email or "").strip().lower()
+    if new_email and new_email != (user.email or "").lower():
+        # Changing the address that signs you in, so prove you own the session.
+        if not user.password_hash:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "This account signs in with Google. Ask an admin to change its email address.",
+            )
+        if not payload.current_password:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Enter your current password to change your email"
+            )
+        if not verify_password(payload.current_password, user.password_hash):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password is incorrect")
+        if db.query(User).filter(User.email == new_email, User.id != user.id).first():
+            raise HTTPException(status.HTTP_409_CONFLICT, "That email is already in use")
+        user.email = new_email
+
     db.commit()
+    db.refresh(user)
+    return UserOut.from_user(user)
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: ChangePasswordRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not user.password_hash:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "This account signs in with Google and has no password to change.",
+        )
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password is incorrect")
+    if verify_password(payload.new_password, user.password_hash):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "The new password must differ from the current one"
+        )
+
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    # Sign every other device out; keep this one signed in.
+    current_token = request.cookies.get(settings.session_cookie_name)
+    current_hash = _hash_token(current_token) if current_token else None
+    query = db.query(SessionModel).filter(SessionModel.user_id == user.id)
+    if current_hash:
+        query = query.filter(SessionModel.token_hash != current_hash)
+    query.delete(synchronize_session=False)
+    db.commit()
+
+
+@router.post("/me/avatar", response_model=UserOut)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Any signed-in user can set their own profile photo.
+
+    Deliberately separate from /api/media (admin/editor only) so avatars stay
+    out of the admin image library.
+    """
+    if file.content_type not in AVATAR_ALLOWED_TYPES:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unsupported image type")
+
+    contents = await file.read()
+    if len(contents) > AVATAR_MAX_BYTES:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Image too large (max 4MB)")
+
+    avatar_root = Path(settings.media_root) / "avatars"
+    avatar_root.mkdir(parents=True, exist_ok=True)
+    extension = Path(file.filename or "").suffix.lower() or ".bin"
+    filename = f"{uuid.uuid4().hex}{extension}"
+    (avatar_root / filename).write_bytes(contents)
+
+    media = Media(
+        url=f"{settings.media_url_prefix}/avatars/{filename}",
+        alt_text=f"Profile photo for {user.display_name or user.email}",
+        uploaded_by=user.id,
+    )
+    db.add(media)
+    db.flush()
+
+    previous_id = user.avatar_media_id
+    user.avatar_media_id = media.id
+    db.commit()
+
+    # Drop the file the old avatar pointed at, so uploads do not pile up.
+    if previous_id and previous_id != media.id:
+        old = db.get(Media, previous_id)
+        if old:
+            old_path = Path(settings.media_root) / old.url.split(
+                f"{settings.media_url_prefix}/", 1
+            )[-1]
+            old_path.unlink(missing_ok=True)
+            db.delete(old)
+            db.commit()
+
     db.refresh(user)
     return UserOut.from_user(user)

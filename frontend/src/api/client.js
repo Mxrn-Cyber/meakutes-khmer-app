@@ -51,6 +51,12 @@ export const api = {
   logout: () => request("/auth/logout", { method: "POST" }),
   me: () => request("/auth/me"),
   updateMe: (payload) => request("/auth/me", { method: "PATCH", body: payload }),
+  changePassword: (payload) => request("/auth/me/password", { method: "POST", body: payload }),
+  uploadAvatar: (file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request("/auth/me/avatar", { method: "POST", body: form, isForm: true });
+  },
 
   // ---- destinations ----
   listDestinations: (params) => request(`/api/destinations${toQueryString(params)}`),

@@ -24,6 +24,7 @@ class UserOut(BaseModel):
     first_name: str | None
     last_name: str | None
     phone: str | None
+    avatar_url: str | None = None
     roles: list[str] = []
 
     model_config = {"from_attributes": True}
@@ -37,6 +38,7 @@ class UserOut(BaseModel):
             first_name=user.first_name,
             last_name=user.last_name,
             phone=user.phone,
+            avatar_url=user.avatar.url if user.avatar else None,
             roles=[r.name for r in user.roles],
         )
 
@@ -45,3 +47,11 @@ class UpdateProfileRequest(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     phone: str | None = None
+    email: EmailStr | None = None
+    # Required only when `email` differs from the account's current address.
+    current_password: str | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)

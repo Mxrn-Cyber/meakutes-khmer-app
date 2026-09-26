@@ -24,6 +24,12 @@ class User(Base):
         secondary="user_roles", back_populates="users", lazy="selectin"
     )
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user")
+    avatar: Mapped["Media | None"] = relationship(  # noqa: F821
+        "Media",
+        primaryjoin="User.avatar_media_id == Media.id",
+        lazy="joined",
+        viewonly=True,
+    )
 
     def has_role(self, name: str) -> bool:
         return any(r.name == name for r in self.roles)

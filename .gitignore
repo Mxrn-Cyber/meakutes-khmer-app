@@ -15,7 +15,8 @@ venv/
 .venv/
 *.db
 *.sqlite3
-media/          # uploaded images live here; keep them out of git
+# uploaded images live here; keep them out of git
+media/
 
 # --- editors / os ---
 .DS_Store

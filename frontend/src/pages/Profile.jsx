@@ -1,22 +1,11 @@
+// Profile page, on the FastAPI backend (no Firebase).
+//
+// Name/phone are saved with PATCH /auth/me. Changing the email address also
+// goes through PATCH /auth/me but requires the current password, since email
+// is what signs you in. Password change is POST /auth/me/password, and the
+// profile photo is POST /auth/me/avatar — all reached through useAuth() so the
+// navbar and the rest of the app see the new values immediately.
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  auth,
-  db,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  storage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  updateProfile,
-  verifyBeforeUpdateEmail, // Updated import
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "../firebase";
 import {
   User,
   Mail,
@@ -30,27 +19,35 @@ import {
   EyeOff,
   Lock,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { api } from "../api/client";
+
+const PLACEHOLDER_PHOTO = "https://via.placeholder.com/150?text=No+Photo";
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
+
+const toFormState = (user) => ({
+  firstName: user?.first_name || "",
+  lastName: user?.last_name || "",
+  email: user?.email || "",
+  phone: user?.phone || "",
+});
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const [userData, setUserData] = useState({
-    displayName: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    photoURL: "",
-  });
+  const { user, isLoading, updateProfile, changePassword, uploadAvatar } = useAuth();
+
   const [editMode, setEditMode] = useState(false);
-  const [editData, setEditData] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [editData, setEditData] = useState(toFormState(user));
+  const [emailPassword, setEmailPassword] = useState("");
+
   const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -62,11 +59,6 @@ const Profile = () => {
     new: false,
     confirm: false,
   });
-  // New state for re-authentication
-  const [showReauthForm, setShowReauthForm] = useState(false);
-  const [reauthPassword, setReauthPassword] = useState("");
-  const [reauthError, setReauthError] = useState("");
-  const [pendingEmail, setPendingEmail] = useState(""); // Store email pending verification
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -79,90 +71,39 @@ const Profile = () => {
     };
   }, []);
 
+  // Keep the edit form in step with the signed-in user (e.g. after a refresh).
   useEffect(() => {
-    const fetchUserData = async () => {
-      const unsubscribe = auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-          navigate("/login"); // Redirect to login if not authenticated
-          return;
-        }
+    if (!editMode) setEditData(toFormState(user));
+  }, [user, editMode]);
 
-        try {
-          const initialUserData = {
-            displayName: user.displayName || "",
-            firstName: "",
-            lastName: "",
-            email: user.email || "",
-            phone: "",
-            photoURL:
-              user.photoURL || "https://via.placeholder.com/150?text=No+Photo",
-          };
-
-          setUserData(initialUserData);
-
-          if (!isOnline) {
-            setApiError("You are offline. Some data may not be available.");
-            setIsLoading(false);
-            return;
-          }
-
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-
-          if (userDoc.exists()) {
-            const firestoreData = userDoc.data();
-            const updatedUserData = {
-              displayName:
-                user.displayName ||
-                `${firestoreData.firstName || ""} ${
-                  firestoreData.lastName || ""
-                }`.trim() ||
-                "Not set",
-              firstName: firestoreData.firstName || "",
-              lastName: firestoreData.lastName || "",
-              email: user.email || "",
-              phone: firestoreData.phone || "",
-              photoURL:
-                user.photoURL ||
-                "https://via.placeholder.com/150?text=No+Photo",
-            };
-            setUserData(updatedUserData);
-          }
-        } catch (error) {
-          setApiError(`Failed to fetch user data: ${error.message}`);
-        } finally {
-          setIsLoading(false);
-        }
-      });
-
-      return () => unsubscribe();
+  // Revoke the object URL the preview is holding, so the blob is not leaked.
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
     };
+  }, [photoPreview]);
 
-    fetchUserData();
-  }, [navigate, isOnline]);
+  const photoURL = photoPreview || (user?.avatar_url ? api.mediaUrl(user.avatar_url) : PLACEHOLDER_PHOTO);
+  const emailChanged =
+    editData.email.trim().toLowerCase() !== (user?.email || "").toLowerCase();
 
   const handleEditToggle = () => {
+    setApiError("");
+    setSuccessMessage("");
+    setEmailPassword("");
     if (editMode) {
-      setEditData({});
+      setEditData(toFormState(user));
       setEditMode(false);
-      setApiError("");
-      setSuccessMessage("");
-      setShowReauthForm(false);
-      setReauthPassword("");
-      setReauthError("");
     } else {
-      setEditData({ ...userData });
+      setEditData(toFormState(user));
       setEditMode(true);
-      setApiError("");
-      setSuccessMessage("");
     }
   };
 
   const handleInputChange = (field, value) => {
-    setEditData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setEditData((prev) => ({ ...prev, [field]: value }));
+    setApiError("");
+    setSuccessMessage("");
   };
 
   const validateEditData = () => {
@@ -170,277 +111,125 @@ const Profile = () => {
     if (!editData.firstName?.trim()) errors.push("First name is required");
     if (!editData.lastName?.trim()) errors.push("Last name is required");
     if (!editData.email?.trim()) errors.push("Email is required");
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email))
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email.trim()))
       errors.push("Please enter a valid email address");
-    if (editData.phone && !/^[\d\s\-\+\(\)]+$/.test(editData.phone))
+    if (editData.phone && !/^[\d\s\-+()]+$/.test(editData.phone))
       errors.push("Please enter a valid phone number");
+    if (emailChanged && !emailPassword)
+      errors.push("Enter your current password to change your email");
     return errors;
   };
 
-  const handleReauthenticate = async () => {
-    if (!auth.currentUser) {
-      setReauthError("You must be logged in.");
-      return false;
-    }
-    if (!reauthPassword) {
-      setReauthError("Please enter your current password.");
-      return false;
-    }
-    setIsUpdating(true);
-    setReauthError("");
-    try {
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        reauthPassword
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-      return true;
-    } catch (error) {
-      let errorMessage = "Re-authentication failed.";
-      if (error.code === "auth/wrong-password") {
-        errorMessage = "Incorrect password. Please try again.";
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "Too many attempts. Please try again later.";
-      } else {
-        errorMessage = error.message || errorMessage;
-      }
-      setReauthError(errorMessage);
-      return false;
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const handleSaveProfile = async () => {
-    if (!auth.currentUser) {
-      setApiError("You must be logged in to update your profile.");
-      return;
-    }
-    if (!isOnline) {
-      setApiError("Cannot update profile while offline.");
-      return;
-    }
     const errors = validateEditData();
-    if (errors.length > 0) {
-      setApiError(errors.join(", "));
+    if (errors.length) {
+      setApiError(errors.join(". "));
       return;
     }
+
     setIsUpdating(true);
     setApiError("");
     setSuccessMessage("");
     try {
-      const userId = auth.currentUser.uid;
-      const userDocRef = doc(db, "users", userId);
-      const firestoreData = {
-        firstName: editData.firstName.trim(),
-        lastName: editData.lastName.trim(),
+      const payload = {
+        first_name: editData.firstName.trim(),
+        last_name: editData.lastName.trim(),
         phone: editData.phone?.trim() || "",
-        updatedAt: new Date().toISOString(),
       };
-      await setDoc(userDocRef, firestoreData, { merge: true });
-      const displayName = `${editData.firstName.trim()} ${editData.lastName.trim()}`;
-      await updateProfile(auth.currentUser, { displayName });
-
-      if (editData.email !== userData.email) {
-        try {
-          await verifyBeforeUpdateEmail(auth.currentUser, editData.email);
-          setSuccessMessage(
-            `Profile updated! A verification email has been sent to ${editData.email}. Please verify to update your email.`
-          );
-          setPendingEmail(editData.email); // Store pending email
-        } catch (error) {
-          if (error.code === "auth/requires-recent-login") {
-            setShowReauthForm(true);
-            setIsUpdating(false);
-            return;
-          } else if (error.code === "auth/email-already-in-use") {
-            throw new Error("This email is already in use by another account.");
-          } else if (error.code === "auth/invalid-email") {
-            throw new Error("Please enter a valid email address.");
-          } else {
-            throw error;
-          }
-        }
-      } else {
-        setSuccessMessage("Profile updated successfully!");
+      if (emailChanged) {
+        payload.email = editData.email.trim();
+        payload.current_password = emailPassword;
       }
-      setUserData({ ...editData, displayName });
+      await updateProfile(payload);
+      setSuccessMessage(
+        emailChanged
+          ? "Profile updated. Your new email address is now the one you sign in with."
+          : "Profile updated."
+      );
       setEditMode(false);
-      setEditData({});
+      setEmailPassword("");
     } catch (error) {
-      let errorMessage = "Failed to update profile.";
-      switch (error.code) {
-        case "auth/email-already-in-use":
-          errorMessage = "This email is already in use by another account.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Please enter a valid email address.";
-          break;
-        default:
-          errorMessage = error.message || errorMessage;
-      }
-      setApiError(errorMessage);
+      setApiError(error.message || "Failed to update profile. Please try again.");
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleReauthAndSave = async () => {
-    const reauthSuccess = await handleReauthenticate();
-    if (reauthSuccess) {
-      try {
-        await verifyBeforeUpdateEmail(auth.currentUser, editData.email);
-        setSuccessMessage(
-          `Profile updated! A verification email has been sent to ${editData.email}. Please verify to update your email.`
-        );
-        setPendingEmail(editData.email);
-        setUserData({
-          ...editData,
-          displayName: `${editData.firstName.trim()} ${editData.lastName.trim()}`,
-        });
-        setEditMode(false);
-        setEditData({});
-        setShowReauthForm(false);
-        setReauthPassword("");
-      } catch (error) {
-        let errorMessage = "Failed to send verification email.";
-        if (error.code === "auth/email-already-in-use") {
-          errorMessage = "This email is already in use by another account.";
-        } else if (error.code === "auth/invalid-email") {
-          errorMessage = "Please enter a valid email address.";
-        } else {
-          errorMessage = error.message || errorMessage;
-        }
-        setApiError(errorMessage);
-      }
-    }
-    setIsUpdating(false);
-  };
-
   const handlePasswordChange = async () => {
-    if (!auth.currentUser) {
-      setApiError("You must be logged in to change your password.");
-      return;
-    }
-    if (!isOnline) {
-      setApiError("Cannot change password while offline.");
-      return;
-    }
     const { currentPassword, newPassword, confirmPassword } = passwordData;
+    setApiError("");
+    setSuccessMessage("");
+
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setApiError("All password fields are required.");
+      setApiError("Fill in all three password fields");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setApiError("New password must be at least 8 characters");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      setApiError("New password must contain an uppercase letter, a lowercase letter and a number");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setApiError("New passwords do not match.");
+      setApiError("The new passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      setApiError("New password must be at least 6 characters long.");
-      return;
-    }
+
     setIsUpdating(true);
-    setApiError("");
     try {
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        currentPassword
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-      await updatePassword(auth.currentUser, newPassword);
-      setSuccessMessage("Password updated successfully!");
+      await changePassword(currentPassword, newPassword);
+      setSuccessMessage("Password updated. Any other devices have been signed out.");
       setShowPasswordForm(false);
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
-      let errorMessage = "Failed to change password.";
-      switch (error.code) {
-        case "auth/wrong-password":
-          errorMessage = "Current password is incorrect.";
-          break;
-        case "auth/weak-password":
-          errorMessage = "New password is too weak.";
-          break;
-        default:
-          errorMessage = error.message || errorMessage;
-      }
-      setApiError(errorMessage);
+      setApiError(error.message || "Failed to update password. Please try again.");
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        setApiError("Please select a valid image file.");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setApiError("File size must be less than 5MB.");
-        return;
-      }
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setPhotoPreview(e.target.result);
-      reader.readAsDataURL(file);
-      setApiError("");
-      setSuccessMessage("");
+    const file = e.target.files?.[0];
+    setApiError("");
+    setSuccessMessage("");
+    if (!file) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      return;
     }
+    if (!file.type.startsWith("image/")) {
+      setApiError("Please choose an image file");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setApiError("That image is larger than 4MB. Please choose a smaller one.");
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
   };
 
   const handlePhotoUpload = async () => {
-    if (!photoFile) {
-      setApiError("Please select a photo to upload.");
-      return;
-    }
-    if (!isOnline) {
-      setApiError("Cannot upload photo while offline.");
-      return;
-    }
-    if (!auth.currentUser) {
-      setApiError("You must be logged in to upload a photo.");
-      return;
-    }
+    if (!photoFile) return;
     setIsUploading(true);
     setApiError("");
     setSuccessMessage("");
     try {
-      const timestamp = Date.now();
-      const fileName = `profile_photo_${timestamp}_${photoFile.name}`;
-      const storageRef = ref(
-        storage,
-        `profile_photos/${auth.currentUser.uid}/${fileName}`
-      );
-      const metadata = {
-        contentType: photoFile.type,
-        customMetadata: {
-          uploadedBy: auth.currentUser.uid,
-          uploadedAt: new Date().toISOString(),
-        },
-      };
-      await uploadBytes(storageRef, photoFile, metadata);
-      const photoURL = await getDownloadURL(storageRef);
-      await updateProfile(auth.currentUser, { photoURL });
-      setUserData((prev) => ({ ...prev, photoURL }));
-      setSuccessMessage("Profile photo updated successfully!");
+      await uploadAvatar(photoFile);
+      setSuccessMessage("Profile photo updated.");
       setPhotoFile(null);
       setPhotoPreview(null);
-      const fileInput = document.getElementById("photo-upload");
-      if (fileInput) fileInput.value = "";
+      const input = document.getElementById("photo-upload");
+      if (input) input.value = "";
     } catch (error) {
-      let errorMessage = "Failed to upload photo.";
-      setApiError(error.message || errorMessage);
+      setApiError(error.message || "Failed to upload photo. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -448,6 +237,10 @@ const Profile = () => {
       </div>
     );
   }
+
+  // ProtectedRoute already handles the signed-out case; this is just a guard
+  // for the moment between logout and redirect.
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
@@ -475,16 +268,20 @@ const Profile = () => {
             </button>
           </div>
 
-          {/* Error Message */}
-          {apiError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {apiError}
+          {!isOnline && (
+            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                You are offline. Changes cannot be saved until you reconnect.
               </p>
             </div>
           )}
 
-          {/* Success Message */}
+          {apiError && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{apiError}</p>
+            </div>
+          )}
+
           {successMessage && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg">
               <p className="text-sm text-green-600 dark:text-green-400">
@@ -493,16 +290,15 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Profile Photo Section */}
+          {/* Profile photo */}
           <div className="flex justify-center mb-6">
             <div className="relative">
               <img
-                src={photoPreview || userData.photoURL}
+                src={photoURL}
                 alt="Profile"
                 className="w-24 h-24 rounded-full object-cover border-4 border-blue-600 dark:border-blue-400"
                 onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/150?text=No+Photo";
+                  e.target.src = PLACEHOLDER_PHOTO;
                 }}
               />
               {isUploading && (
@@ -516,10 +312,9 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* User Information */}
+          {/* Details */}
           <div className="space-y-4 mb-6">
             {editMode ? (
-              // Edit Mode
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -528,10 +323,8 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={editData.firstName || ""}
-                      onChange={(e) =>
-                        handleInputChange("firstName", e.target.value)
-                      }
+                      value={editData.firstName}
+                      onChange={(e) => handleInputChange("firstName", e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="First name"
                     />
@@ -542,160 +335,116 @@ const Profile = () => {
                     </label>
                     <input
                       type="text"
-                      value={editData.lastName || ""}
-                      onChange={(e) =>
-                        handleInputChange("lastName", e.target.value)
-                      }
+                      value={editData.lastName}
+                      onChange={(e) => handleInputChange("lastName", e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Last name"
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Email *
                   </label>
                   <input
                     type="email"
-                    value={editData.email || ""}
+                    value={editData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="Email address"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Phone
                   </label>
                   <input
                     type="tel"
-                    value={editData.phone || ""}
+                    value={editData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="Phone number"
                   />
                 </div>
-                {showReauthForm ? (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Current Password (Required to update email)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPasswords.current ? "text" : "password"}
-                          value={reauthPassword}
-                          onChange={(e) => setReauthPassword(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                          placeholder="Current password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowPasswords((prev) => ({
-                              ...prev,
-                              current: !prev.current,
-                            }))
-                          }
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showPasswords.current ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                      {reauthError && (
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                          {reauthError}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
+
+                {/* Only asked for when the email is actually being changed. */}
+                {emailChanged && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Current Password (required to change your email)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords.current ? "text" : "password"}
+                        value={emailPassword}
+                        onChange={(e) => setEmailPassword(e.target.value)}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="Current password"
+                        autoComplete="current-password"
+                      />
                       <button
-                        onClick={handleReauthAndSave}
-                        disabled={isUpdating || !isOnline}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        type="button"
+                        onClick={() =>
+                          setShowPasswords((prev) => ({ ...prev, current: !prev.current }))
+                        }
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
-                        {isUpdating ? (
-                          <div className="flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                            Saving...
-                          </div>
+                        {showPasswords.current ? (
+                          <EyeOff className="w-4 h-4" />
                         ) : (
-                          <>
-                            <Save className="w-4 h-4 inline mr-2" />
-                            Save with Re-authentication
-                          </>
+                          <Eye className="w-4 h-4" />
                         )}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowReauthForm(false);
-                          setReauthPassword("");
-                          setReauthError("");
-                        }}
-                        className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                      >
-                        Cancel
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <button
-                    onClick={handleSaveProfile}
-                    disabled={isUpdating || !isOnline}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isUpdating ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Saving...
-                      </div>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 inline mr-2" />
-                        Save Changes
-                      </>
-                    )}
-                  </button>
                 )}
+
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isUpdating || !isOnline}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdating ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </div>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 inline mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
               </>
             ) : (
-              // View Mode
               <>
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5 text-gray-400" />
                   <p className="text-gray-700 dark:text-gray-300">
                     <span className="font-medium">Name:</span>{" "}
-                    {userData.displayName || "Not set"}
+                    {user.display_name || "Not set"}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-5 h-5 text-gray-400" />
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Email:</span>{" "}
-                    {userData.email || "Not set"}
-                    {pendingEmail && pendingEmail !== userData.email && (
-                      <span className="text-sm text-blue-600 dark:text-blue-400 ml-2">
-                        (Pending: {pendingEmail})
-                      </span>
-                    )}
+                    <span className="font-medium">Email:</span> {user.email || "Not set"}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="w-5 h-5 text-gray-400" />
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Phone:</span>{" "}
-                    {userData.phone || "Not set"}
+                    <span className="font-medium">Phone:</span> {user.phone || "Not set"}
                   </p>
                 </div>
               </>
             )}
           </div>
 
-          {/* Password Change Section */}
+          {/* Password */}
           {!editMode && (
             <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mb-6">
               <button
@@ -708,96 +457,38 @@ const Profile = () => {
 
               {showPasswordForm && (
                 <div className="mt-4 space-y-3">
-                  <div className="relative">
-                    <input
-                      type={showPasswords.current ? "text" : "password"}
-                      placeholder="Current Password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) =>
-                        setPasswordData((prev) => ({
-                          ...prev,
-                          currentPassword: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPasswords((prev) => ({
-                          ...prev,
-                          current: !prev.current,
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPasswords.current ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.new ? "text" : "password"}
-                      placeholder="New Password"
-                      value={passwordData.newPassword}
-                      onChange={(e) =>
-                        setPasswordData((prev) => ({
-                          ...prev,
-                          newPassword: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPasswords((prev) => ({
-                          ...prev,
-                          new: !prev.new,
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPasswords.new ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.confirm ? "text" : "password"}
-                      placeholder="Confirm New Password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) =>
-                        setPasswordData((prev) => ({
-                          ...prev,
-                          confirmPassword: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPasswords((prev) => ({
-                          ...prev,
-                          confirm: !prev.confirm,
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPasswords.confirm ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
+                  {[
+                    { key: "currentPassword", toggle: "current", placeholder: "Current Password" },
+                    { key: "newPassword", toggle: "new", placeholder: "New Password" },
+                    { key: "confirmPassword", toggle: "confirm", placeholder: "Confirm New Password" },
+                  ].map(({ key, toggle, placeholder }) => (
+                    <div className="relative" key={key}>
+                      <input
+                        type={showPasswords[toggle] ? "text" : "password"}
+                        placeholder={placeholder}
+                        value={passwordData[key]}
+                        onChange={(e) =>
+                          setPasswordData((prev) => ({ ...prev, [key]: e.target.value }))
+                        }
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        autoComplete={key === "currentPassword" ? "current-password" : "new-password"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowPasswords((prev) => ({ ...prev, [toggle]: !prev[toggle] }))
+                        }
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords[toggle] ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+
                   <div className="flex space-x-2">
                     <button
                       onClick={handlePasswordChange}
@@ -814,6 +505,7 @@ const Profile = () => {
                           newPassword: "",
                           confirmPassword: "",
                         });
+                        setApiError("");
                       }}
                       className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
@@ -825,7 +517,7 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Photo Upload Section */}
+          {/* Photo upload */}
           {!editMode && (
             <div className="border-t border-gray-200 dark:border-gray-600 pt-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -837,15 +529,14 @@ const Profile = () => {
                 <input
                   id="photo-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
                   onChange={handlePhotoChange}
                   className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-300"
                 />
 
                 {photoFile && (
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Selected: {photoFile.name} (
-                    {(photoFile.size / 1024 / 1024).toFixed(2)} MB)
+                    Selected: {photoFile.name} ({(photoFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
 
