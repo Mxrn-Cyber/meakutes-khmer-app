@@ -121,7 +121,7 @@ const AdminNews = () => {
   if (editingId !== null) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {editingId === "new" ? "New News/Event" : "Edit News/Event"}
           </h1>
@@ -260,7 +260,7 @@ const AdminNews = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">News & Events</h1>
         <button
           onClick={startNew}
@@ -270,8 +270,8 @@ const AdminNews = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-gray-50 dark:bg-gray-700/50 text-left text-gray-500 dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Title</th>

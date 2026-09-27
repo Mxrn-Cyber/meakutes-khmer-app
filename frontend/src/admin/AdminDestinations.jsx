@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Image as ImageIcon } from "lucide-react";
 import { api } from "../api/client";
+import LocationPicker from "./LocationPicker";
 
 const STATUS_OPTIONS = ["draft", "published"];
 
@@ -134,7 +135,7 @@ const AdminDestinations = () => {
   if (editingId !== null) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {editingId === "new" ? "New Destination" : "Edit Destination"}
           </h1>
@@ -187,6 +188,13 @@ const AdminDestinations = () => {
                 className={inputClass}
               />
             </Field>
+            <div className="sm:col-span-2">
+              <LocationPicker
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onChange={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
+              />
+            </div>
             <Field label="Duration">
               <input
                 value={form.duration}
@@ -317,7 +325,7 @@ const AdminDestinations = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Destinations</h1>
         <button
           onClick={startNew}
@@ -327,8 +335,8 @@ const AdminDestinations = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-gray-50 dark:bg-gray-700/50 text-left text-gray-500 dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Name</th>

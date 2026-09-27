@@ -51,7 +51,7 @@ const AdminReviews = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reviews</h1>
         <select
           value={statusFilter}

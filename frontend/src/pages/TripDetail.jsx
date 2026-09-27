@@ -165,6 +165,7 @@ function TripDetail() {
   const { isFavorite, toggleFavorite } = useTripContext();
   const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const { isLoaded: mapsLoaded, loadError: mapsError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -362,9 +363,24 @@ function TripDetail() {
               {trip.rating}/5 ({trip.reviews} Reviews)
             </span>
           </div>
-          <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-            {trip.description || "No description available."}
-          </p>
+          <div>
+            <p
+              className={`text-gray-700 dark:text-gray-300 text-lg leading-relaxed whitespace-pre-line ${
+                showFullDescription ? "" : "line-clamp-6"
+              }`}
+            >
+              {trip.description || "No description available."}
+            </p>
+            {(trip.description || "").length > 400 && (
+              <button
+                type="button"
+                onClick={() => setShowFullDescription((v) => !v)}
+                className="mt-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
+              >
+                {showFullDescription ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-lg">
             <MapPin size={20} className="text-blue-500" />
             {trip.province}, Cambodia

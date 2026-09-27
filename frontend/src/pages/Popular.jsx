@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Search, MapPin, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Search, MapPin, SortAsc, SortDesc } from "lucide-react";
 import { useDestinations } from "../hooks/useDestinations";
 import { useTripContext } from "../context/TripContext";
 import TripCard from "../components/TripCard.jsx";
@@ -39,7 +39,6 @@ function Popular() {
   const [sortBy, setSortBy] = useState("rating");
   const [sortOrder, setSortOrder] = useState("desc");
   const [highlightedProvince, setHighlightedProvince] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [tripRatings, setTripRatings] = useState({});
   const tripsPerPage = 24;
@@ -159,8 +158,8 @@ function Popular() {
 
       <div className="max-w-7xl mx-auto mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-          <div className="flex flex-col lg:flex-row gap-6 items-center">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-stretch lg:items-center">
+            <div className="relative w-full lg:flex-1 lg:max-w-md">
               <Search
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={20}
@@ -173,7 +172,7 @@ function Popular() {
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-full lg:w-auto">
               <MapPin
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={16}
@@ -181,7 +180,7 @@ function Popular() {
               <select
                 value={selectedProvince}
                 onChange={(e) => setSelectedProvince(e.target.value)}
-                className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white pl-10 pr-10 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-300 min-w-[200px]"
+                className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white pl-10 pr-10 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-300 w-full lg:w-auto lg:min-w-[200px]"
               >
                 {provinces.map((province) => (
                   <option key={province} value={province}>
@@ -190,11 +189,12 @@ function Popular() {
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full lg:w-auto">
               <select
                 value={sortBy}
+                aria-label="Sort by"
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 flex-1 lg:flex-none"
               >
                 <option value="rating">Rating</option>
                 <option value="reviews">Reviews</option>
@@ -203,6 +203,8 @@ function Popular() {
               </select>
               <button
                 onClick={toggleSortOrder}
+                aria-label={sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
+                title={sortOrder === "asc" ? "Ascending" : "Descending"}
                 className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300"
               >
                 {sortOrder === "asc" ? (
@@ -212,12 +214,6 @@ function Popular() {
                 )}
               </button>
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300"
-            >
-              <Filter size={20} />
-            </button>
           </div>
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             Showing {filteredAndSortedTrips.length} of {tripsData.length}{" "}

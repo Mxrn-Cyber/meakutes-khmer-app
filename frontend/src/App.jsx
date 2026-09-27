@@ -1,4 +1,4 @@
-import { Routes, Route, HashRouter } from "react-router-dom";
+import { Routes, Route, HashRouter, useLocation } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Discover from "./pages/Discover.jsx";
 import Popular from "./pages/Popular.jsx";
@@ -30,14 +30,17 @@ import AdminUsers from "./admin/AdminUsers.jsx";
 
 function AppShell() {
   const { isLoading } = useAuth();
+  const { pathname } = useLocation();
+  // The admin panel has its own full-screen layout (see admin/AdminLayout.jsx).
+  const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {isLoading && <Loading />}
-      <Navbar />
-      <main className="pt-16"></main>
+      {!isAdminArea && <Navbar />}
+      {!isAdminArea && <main className="pt-16"></main>}
       <Translator />
-      <main className="container mx-auto px-4 py-8">
+      <main className={isAdminArea ? "" : "container mx-auto px-4 py-8"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
@@ -83,7 +86,7 @@ function AppShell() {
           />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminArea && <Footer />}
     </div>
   );
 }
