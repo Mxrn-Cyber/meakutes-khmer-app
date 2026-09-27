@@ -7,16 +7,10 @@ import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 
-// Use Vite environment variable with fallback
-const GOOGLE_MAPS_API_KEY =
-  import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-  "AIzaSyC_M4bm9U_MZgTZcvpZ6Lo9IZXWTzzsWps";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
-// Log warning if using fallback key
-if (GOOGLE_MAPS_API_KEY === "AIzaSyC_M4bm9U_MZgTZcvpZ6Lo9IZXWTzzsWps") {
-  console.warn(
-    "Using fallback Google Maps API key. For production, set VITE_GOOGLE_MAPS_API_KEY in .env file."
-  );
+if (!GOOGLE_MAPS_API_KEY) {
+  console.warn("VITE_GOOGLE_MAPS_API_KEY is not set, so the map will not load.");
 }
 
 // Map container style
