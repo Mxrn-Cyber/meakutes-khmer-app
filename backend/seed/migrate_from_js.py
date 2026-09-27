@@ -16,13 +16,15 @@ skip image migration and link destinations/news with no images.
 """
 
 import argparse
+import mimetypes
+import uuid
 import json
-import shutil
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from app import storage  # noqa: E402
 from app.config import get_settings  # noqa: E402
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.models.destination import Destination, DestinationMedia  # noqa: E402
@@ -49,17 +51,9 @@ def copy_image(db, images_dir: Path | None, relative_path: str | None) -> Media 
         print(f"  ! image not found, skipping: {source}")
         return None
 
-    media_root = Path(settings.media_root)
-    media_root.mkdir(parents=True, exist_ok=True)
-    dest_name = source.name
-    dest_path = media_root / dest_name
-    n = 2
-    while dest_path.exists():
-        dest_path = media_root / f"{source.stem}-{n}{source.suffix}"
-        n += 1
-    shutil.copy2(source, dest_path)
-
-    media = Media(url=f"{settings.media_url_prefix}/{dest_path.name}", alt_text=None)
+    content_type = mimetypes.guess_type(source.name)[0]
+    url = storage.save(f"places/{uuid.uuid4().hex[:8]}-{source.name}", source.read_bytes(), content_type)
+    media = Media(url=url, alt_text=None)
     db.add(media)
     db.flush()
     return media

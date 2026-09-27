@@ -1,59 +1,126 @@
 # Deploying Meakutes-Khmer
 
-```
-browser ──> Cloudflare Worker (frontend/)  ──/api /auth /media──> Render (backend/) ──> cloud MySQL
-            serves the React build
-```
-
-The browser only talks to the Cloudflare domain. The Worker forwards API
-calls to Render, so the login cookie is first-party and works in every browser.
-
-## 1. Cloud MySQL
-
-Create a MySQL 8 database (for example Aiven or TiDB Cloud). Build the URL:
+Same pattern as eTnakRean, but a separate app with its own accounts' projects,
+names and database.
 
 ```
-mysql+pymysql://USER:PASSWORD@HOST:PORT/DBNAME?ssl_ca=/etc/ssl/certs/ca-certificates.crt
+browser ─► Cloudflare Worker  meakutes-khmer.laothomorn.workers.dev
+             │  serves the React build (frontend/dist)
+             └─ /api /auth /media ─► Render  meakutes-khmer-api.onrender.com  (FastAPI)
+                                         ├─► TiDB Cloud  (MySQL)
+                                         └─► Cloudflare R2  meakutes-khmer-media  (images)
 ```
 
-## 2. Backend on Render
+The browser only talks to the workers.dev address. The Worker forwards API
+calls to Render, so the login cookie is first-party.
 
-1. Push to GitHub.
-2. Render → **New → Blueprint** → pick this repo (uses `render.yaml`).
-3. Fill in the secret values:
-   - `DATABASE_URL`: from step 1
-   - `GOOGLE_CLIENT_ID`: same as the frontend's `VITE_GOOGLE_CLIENT_ID`
-   - `CORS_ORIGINS`: your Cloudflare URL, e.g. `https://meakutes-khmer-frontend.<you>.workers.dev`
-4. Every deploy runs `alembic upgrade head` first, so migrations apply by themselves.
-5. Check `https://<render-service>.onrender.com/health` returns `{"status":"ok"}`.
+| Piece | Service | Name |
+|---|---|---|
+| Website | Cloudflare Workers | `meakutes-khmer` |
+| API | Render (free, Singapore) | `meakutes-khmer-api` |
+| Database | TiDB Cloud Serverless (free, MySQL) | `meakutes_khmer` |
+| Images | Cloudflare R2 | `meakutes-khmer-media` |
 
-The free plan sleeps after about 15 minutes idle, so the first request after that takes about 30–60 seconds.
+Do the steps in this order. Keep every password and key out of git.
 
-## 3. Frontend on Cloudflare
+---
 
-1. In `frontend/wrangler.jsonc`, set `BACKEND_URL` to your Render URL.
-2. Build and deploy:
+## 1. Database: TiDB Cloud (MySQL)
+
+1. Sign up at https://tidbcloud.com → **Create Cluster** → **Serverless**, region **Singapore**.
+2. Cluster → **Connect** → *Connect With*: **General** → **Generate password**.
+3. **SQL Editor**: run `CREATE DATABASE meakutes_khmer;`
+4. Build the URL (host, port and user come from the Connect dialog):
 
 ```
-cd frontend
-npm run build      # uses .env.production (API on same domain)
+mysql+pymysql://USER:PASSWORD@HOST:4000/meakutes_khmer?ssl_ca=/etc/ssl/certs/ca-certificates.crt
+```
+
+On macOS the CA file is `/etc/ssl/cert.pem` instead. Use that path in `.env.cloud` (step 4).
+
+## 2. Images: Cloudflare R2
+
+1. Cloudflare dashboard → **R2** → **Create bucket** → `meakutes-khmer-media`.
+2. Bucket → **Settings** → **Public access** → enable the **r2.dev** URL. Copy it (`https://pub-….r2.dev`).
+3. R2 → **Manage API tokens** → **Create API token**, permission **Object Read & Write**, only this bucket.
+   Copy the **Access Key ID**, **Secret Access Key** and your **Account ID**.
+
+## 3. API: Render
+
+1. Push the repo to GitHub.
+2. Render → **New → Blueprint** → pick the repo (uses `render.yaml`).
+3. Fill in the values Render asks for:
+
+| Key | Value |
+|---|---|
+| `DATABASE_URL` | step 1 URL |
+| `GOOGLE_CLIENT_ID` | from Google Cloud (same as `VITE_GOOGLE_CLIENT_ID`) |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | step 2 |
+| `R2_PUBLIC_URL` | step 2 r2.dev URL |
+
+4. Deploy. Every deploy runs `alembic upgrade head` first, which creates the tables.
+5. Check `https://meakutes-khmer-api.onrender.com/health` → `{"status":"ok"}`.
+   (If Render gave the service a different URL, use that everywhere below.)
+
+The free plan sleeps after about 15 minutes idle, so the first visit afterwards takes 30–60 seconds.
+
+## 4. Content: 20 places, 6 news items, 78 images
+
+On your Mac, create `backend/.env.cloud` (git ignores it):
+
+```
+DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:4000/meakutes_khmer?ssl_ca=/etc/ssl/cert.pem
+STORAGE_BACKEND=r2
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=meakutes-khmer-media
+R2_PUBLIC_URL=https://pub-....r2.dev
+```
+
+Then:
+
+```
+cd ~/Desktop/meakutes-khmer-app/backend
+ENV_FILE=.env.cloud bash seed/load_content.sh
+```
+
+Safe to run again; existing items are skipped.
+
+## 5. Website: Cloudflare Workers
+
+1. `frontend/wrangler.jsonc`: check `BACKEND_URL` matches the Render URL.
+2. `frontend/.env` must have `VITE_GOOGLE_CLIENT_ID` and `VITE_GOOGLE_MAPS_API_KEY`.
+3. Build and deploy:
+
+```
+cd ~/Desktop/meakutes-khmer-app/frontend
+npm run build
+npx wrangler login        # once
 npx wrangler deploy
 ```
 
-`VITE_GOOGLE_CLIENT_ID` and `VITE_GOOGLE_MAPS_API_KEY` must be in
-`frontend/.env` (or `.env.production.local`) when you build.
+Open https://meakutes-khmer.laothomorn.workers.dev
 
-## 4. Google Sign-In
+## 6. Google (Sign-in and Maps)
 
-In Google Cloud Console → OAuth client → **Authorized JavaScript origins**,
-add the Cloudflare URL (and any custom domain).
+- **OAuth client** → Authorized JavaScript origins: add `https://meakutes-khmer.laothomorn.workers.dev`
+- **Maps API key** → Website restrictions: add `https://meakutes-khmer.laothomorn.workers.dev/*`
 
-## 5. First admin
+## 7. First admin
 
-Sign up on the live site, then in MySQL:
+Sign in on the live site, then on your Mac:
 
-```sql
-INSERT INTO user_roles (user_id, role_id)
-SELECT u.id, r.id FROM users u, roles r
-WHERE u.email = 'you@example.com' AND r.name = 'admin';
 ```
+cd ~/Desktop/meakutes-khmer-app/backend
+set -a; source .env.cloud; set +a
+source venv/bin/activate
+python seed/make_admin.py laothomorn@gmail.com
+```
+
+---
+
+## Updating later
+
+- **Backend:** `git push` → Render redeploys automatically and runs migrations.
+- **Frontend:** `cd frontend && npm run build && npx wrangler deploy`.

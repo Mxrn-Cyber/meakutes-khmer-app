@@ -7,6 +7,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from sqlalchemy.orm import Session
 
+from app import storage
 from app.config import get_settings
 from app.database import get_db
 from app.models.media import Media
@@ -245,14 +246,11 @@ async def upload_avatar(
     if len(contents) > AVATAR_MAX_BYTES:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Image too large (max 4MB)")
 
-    avatar_root = Path(settings.media_root) / "avatars"
-    avatar_root.mkdir(parents=True, exist_ok=True)
     extension = Path(file.filename or "").suffix.lower() or ".bin"
-    filename = f"{uuid.uuid4().hex}{extension}"
-    (avatar_root / filename).write_bytes(contents)
+    url = storage.save(f"avatars/{uuid.uuid4().hex}{extension}", contents, file.content_type)
 
     media = Media(
-        url=f"{settings.media_url_prefix}/avatars/{filename}",
+        url=url,
         alt_text=f"Profile photo for {user.display_name or user.email}",
         uploaded_by=user.id,
     )
@@ -267,10 +265,7 @@ async def upload_avatar(
     if previous_id and previous_id != media.id:
         old = db.get(Media, previous_id)
         if old:
-            old_path = Path(settings.media_root) / old.url.split(
-                f"{settings.media_url_prefix}/", 1
-            )[-1]
-            old_path.unlink(missing_ok=True)
+            storage.delete(old.url)
             db.delete(old)
             db.commit()
 

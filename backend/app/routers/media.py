@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app import storage
 from app.config import get_settings
 from app.database import get_db
 from app.models.media import Media
@@ -36,13 +37,10 @@ async def upload_media(
     if len(contents) > MAX_BYTES:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Image too large (max 8MB)")
 
-    media_root = Path(settings.media_root)
-    media_root.mkdir(parents=True, exist_ok=True)
-    extension = Path(file.filename or "").suffix or ".bin"
-    filename = f"{uuid.uuid4().hex}{extension}"
-    (media_root / filename).write_bytes(contents)
+    extension = Path(file.filename or "").suffix.lower() or ".bin"
+    url = storage.save(f"uploads/{uuid.uuid4().hex}{extension}", contents, file.content_type)
 
-    media = Media(url=f"{settings.media_url_prefix}/{filename}", uploaded_by=user.id)
+    media = Media(url=url, uploaded_by=user.id)
     db.add(media)
     db.commit()
     db.refresh(media)
@@ -58,8 +56,6 @@ def delete_media(
     media = db.get(Media, media_id)
     if not media:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Media not found")
-    filename = media.url.rsplit("/", 1)[-1]
-    file_path = Path(settings.media_root) / filename
-    file_path.unlink(missing_ok=True)
+    storage.delete(media.url)
     db.delete(media)
     db.commit()

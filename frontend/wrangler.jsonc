@@ -1,5 +1,5 @@
 {
-  "name": "meakutes-khmer-frontend",
+  "name": "meakutes-khmer",
   "main": "worker/index.js",
   "compatibility_date": "2025-05-31",
   "assets": {

@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     media_root: str = "./media"
     media_url_prefix: str = "/media"
 
+    # "local" for development, "r2" for production (see app/storage.py)
+    storage_backend: str = "local"
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = ""
+    r2_public_url: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property

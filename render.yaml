@@ -1,4 +1,5 @@
-# Render Blueprint for the Meakutes-Khmer API.
+# Render Blueprint for the Meakutes-Khmer API (same setup as eTnakRean:
+# backend on Render free tier, images in Cloudflare R2, site on Cloudflare Workers).
 # Render dashboard -> New -> Blueprint -> pick this repo.
 services:
   - type: web
@@ -6,6 +7,7 @@ services:
     runtime: python
     rootDir: backend
     plan: free
+    region: singapore
     buildCommand: pip install -r requirements.txt
     # Run migrations on every deploy, then start the API.
     startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
@@ -13,6 +15,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.7
+      # TiDB Cloud (MySQL-compatible), e.g.
+      # mysql+pymysql://USER:PASS@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/meakutes_khmer?ssl_ca=/etc/ssl/certs/ca-certificates.crt
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
@@ -20,12 +24,21 @@ services:
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: CORS_ORIGINS
-        sync: false
+        value: https://meakutes-khmer.laothomorn.workers.dev
       - key: COOKIE_SECURE
         value: "true"
       - key: COOKIE_SAMESITE
         value: lax
-      - key: MEDIA_ROOT
-        value: ./media
-      - key: MEDIA_URL_PREFIX
-        value: /media
+      # Images go to Cloudflare R2, because Render's free disk is wiped on every deploy.
+      - key: STORAGE_BACKEND
+        value: r2
+      - key: R2_BUCKET
+        value: meakutes-khmer-media
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false

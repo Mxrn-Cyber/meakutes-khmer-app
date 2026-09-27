@@ -15,6 +15,7 @@ export default {
       }
       const target = new URL(url.pathname + url.search, env.BACKEND_URL);
       const headers = new Headers(request.headers);
+      headers.delete("host");
       headers.set("X-Forwarded-Host", url.host);
       headers.set("X-Forwarded-Proto", "https");
       return fetch(target, {
