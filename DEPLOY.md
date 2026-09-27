@@ -36,7 +36,7 @@ Do the steps in this order. Keep every password and key out of git.
 mysql+pymysql://USER:PASSWORD@HOST:4000/meakutes_khmer?ssl_ca=/etc/ssl/certs/ca-certificates.crt
 ```
 
-On macOS the CA file is `/etc/ssl/cert.pem` instead. Use that path in `.env.cloud` (step 4).
+Any `ssl_ca` path works: if the file is missing on a machine, the app uses the certifi CA bundle instead.
 
 ## 2. Images: Cloudflare R2
 

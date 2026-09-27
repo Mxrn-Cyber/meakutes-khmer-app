@@ -1,5 +1,9 @@
 from functools import lru_cache
 
+import os
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,6 +33,24 @@ class Settings(BaseSettings):
     r2_public_url: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @field_validator("database_url")
+    @classmethod
+    def _portable_ssl_ca(cls, url: str) -> str:
+        """Point ssl_ca at a CA bundle that exists on this machine.
+
+        The Mac keeps it at /etc/ssl/cert.pem, Render at another path; if the
+        given file is missing, use certifi's bundle so one URL works everywhere.
+        """
+        parts = urlsplit(url)
+        query = dict(parse_qsl(parts.query))
+        ca = query.get("ssl_ca")
+        if ca and not os.path.exists(ca):
+            import certifi
+
+            query["ssl_ca"] = certifi.where()
+            return urlunsplit(parts._replace(query=urlencode(query, safe="/:")))
+        return url
 
     @property
     def cors_origin_list(self) -> list[str]:
