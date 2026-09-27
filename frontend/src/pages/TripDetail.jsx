@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, MapPin, Heart } from "lucide-react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { useDestination, useDestinations } from "../hooks/useDestinations";
 import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
@@ -27,9 +27,6 @@ const mapOptions = {
   streetViewControl: false,
   fullscreenControl: false,
 };
-
-// Singleton to track if LoadScript has been mounted
-let isGoogleApiLoaded = false;
 
 // Helper function to shuffle array and get random items
 const getRandomTrips = (trips, excludeId, count = 3) => {
@@ -168,18 +165,15 @@ function TripDetail() {
   const { isFavorite, toggleFavorite } = useTripContext();
   const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [shouldLoadScript, setShouldLoadScript] = useState(!isGoogleApiLoaded);
+  const { isLoaded: mapsLoaded, loadError: mapsError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
 
   // Memoize random trips to avoid re-shuffling on every render
   const randomTrips = useMemo(() => {
     return getRandomTrips(allTrips, id, 3);
   }, [allTrips, id]);
-
-  useEffect(() => {
-    if (!isGoogleApiLoaded && shouldLoadScript) {
-      isGoogleApiLoaded = true;
-    }
-  }, [shouldLoadScript]);
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -309,52 +303,17 @@ function TripDetail() {
                 </div>
               ) : (
                 <>
-                  {shouldLoadScript ? (
-                    <LoadScript
-                      googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-                      loadingElement={
-                        <div className="flex items-center justify-center h-[40vh] bg-gray-100 dark:bg-gray-700">
-                          <svg
-                            className="animate-spin h-8 w-8 text-blue-600"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="none"
-                            />
-                            <path
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"
-                            />
-                          </svg>
-                        </div>
-                      }
-                      onError={() =>
-                        console.error("Failed to load Google Maps API")
-                      }
-                      onLoad={() => console.log("Google Maps API loaded")}
-                    >
-                      <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={mapCenter}
-                        zoom={15}
-                        options={mapOptions}
-                      >
-                        {trip.latitude && trip.longitude && (
-                          <Marker
-                            position={{
-                              lat: trip.latitude,
-                              lng: trip.longitude,
-                            }}
-                            title={trip.name}
-                          />
-                        )}
-                      </GoogleMap>
-                    </LoadScript>
+                  {mapsError ? (
+                    <div className="flex items-center justify-center h-[40vh] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-center px-4">
+                      The map could not load. Check the Google Maps API key and its allowed websites.
+                    </div>
+                  ) : !mapsLoaded ? (
+                    <div className="flex items-center justify-center h-[40vh] bg-gray-100 dark:bg-gray-700">
+                      <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+                      </svg>
+                    </div>
                   ) : (
                     <GoogleMap
                       mapContainerStyle={mapContainerStyle}
@@ -362,7 +321,7 @@ function TripDetail() {
                       zoom={15}
                       options={mapOptions}
                     >
-                      {trip.latitude && trip.longitude && (
+                      {trip.latitude != null && trip.longitude != null && (
                         <Marker
                           position={{ lat: trip.latitude, lng: trip.longitude }}
                           title={trip.name}
