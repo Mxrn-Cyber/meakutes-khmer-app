@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useRef } from "react";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import { GOOGLE_MAPS_API_KEY, useGoogleMaps } from "../utils/googleMaps";
 import { MapPin } from "lucide-react";
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const CAMBODIA_CENTER = { lat: 12.5657, lng: 104.991 };
 const mapStyle = { width: "100%", height: "320px", borderRadius: "0.75rem" };
 const mapOptions = {
@@ -25,11 +25,8 @@ function toPoint(lat, lng) {
 }
 
 export default function LocationPicker({ latitude, longitude, onChange }) {
-  // Same loader options as the place page, so the Maps script is loaded once.
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
+  const { isLoaded, error } = useGoogleMaps();
+  const loadError = error === "load" || error === "auth";
   const mapRef = useRef(null);
   const point = toPoint(latitude, longitude);
   // Only used for the first render; afterwards the map keeps its own view.
@@ -61,7 +58,7 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
   } else if (loadError) {
     body = (
       <p className="text-sm text-rose-600 dark:text-rose-400">
-        The map could not load. Check the Google Maps API key and its allowed websites.
+        Google Maps refused this website. In Google Cloud, open Credentials and add {window.location.origin}/* to the API key’s allowed websites, and make sure the Maps JavaScript API and billing are turned on. You can still type the latitude and longitude above.
       </p>
     );
   } else if (!isLoaded) {

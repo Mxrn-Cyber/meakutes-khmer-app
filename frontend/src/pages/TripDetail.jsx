@@ -17,14 +17,14 @@ import {
   ChevronRight,
   Check,
 } from "lucide-react";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import { useGoogleMaps, embedUrl } from "../utils/googleMaps";
 import { useDestination, useDestinations } from "../hooks/useDestinations";
 import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import { Container, PlaceCard, Stars, RatingPill, buttonClass } from "../components/ui";
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const mapOptions = { zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true };
 
 function Gallery({ images, name, onOpen }) {
@@ -293,7 +293,7 @@ function ReviewsSection({ destinationId }) {
 }
 
 function LocationCard({ trip }) {
-  const { isLoaded, loadError } = useJsApiLoader({ id: "google-map-script", googleMapsApiKey: GOOGLE_MAPS_API_KEY });
+  const { usable, error } = useGoogleMaps();
   const hasPoint = trip.latitude != null && trip.longitude != null;
   const center = hasPoint ? { lat: trip.latitude, lng: trip.longitude } : { lat: 12.5657, lng: 104.991 };
   const directions = hasPoint
@@ -303,15 +303,25 @@ function LocationCard({ trip }) {
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
       <div className="h-64 bg-gray-100 dark:bg-gray-800">
-        {GOOGLE_MAPS_API_KEY && isLoaded && !loadError ? (
+        {usable ? (
           <GoogleMap mapContainerStyle={{ width: "100%", height: "100%" }} center={center} zoom={hasPoint ? 14 : 7} options={mapOptions}>
             {hasPoint && <Marker position={center} title={trip.name} />}
           </GoogleMap>
+        ) : error ? (
+          // The interactive map is unavailable, so fall back to Google's key-free embed.
+          <iframe
+            title={`Map of ${trip.name}`}
+            src={embedUrl(hasPoint ? { lat: trip.latitude, lng: trip.longitude } : { query: `${trip.name}, ${trip.province || ""}, Cambodia`, zoom: 10 })}
+            className="h-full w-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
         ) : (
-          <div className="grid h-full place-items-center p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            <div>
+          <div className="grid h-full place-items-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-center">
               <MapPin className="mx-auto mb-2 text-brand-600" />
-              {loadError || !GOOGLE_MAPS_API_KEY ? "Map unavailable right now." : "Loading map…"}
+              Loading map…
             </div>
           </div>
         )}
