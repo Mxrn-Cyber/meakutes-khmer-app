@@ -24,3 +24,4 @@ media/
 .idea/
 .vscode/
 *.swp
+_to_delete/

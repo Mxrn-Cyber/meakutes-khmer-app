@@ -120,6 +120,9 @@ export const api = {
   adminSetUserActive: (id, isActive) =>
     request(`/api/admin/users/${id}/active`, { method: "PUT", body: { is_active: isActive } }),
 
+  // ---- public stats ----
+  stats: () => request("/api/stats"),
+
   mediaUrl: (path) => (path?.startsWith("http") ? path : `${API_BASE_URL}${path}`),
 };
 
