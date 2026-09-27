@@ -116,6 +116,7 @@ export const api = {
   adminListUsers: () => request("/api/admin/users"),
   adminSetUserRoles: (id, roles) =>
     request(`/api/admin/users/${id}/roles`, { method: "PUT", body: { roles } }),
+  adminDeleteUser: (id) => request(`/api/admin/users/${id}`, { method: "DELETE" }),
   adminSetUserActive: (id, isActive) =>
     request(`/api/admin/users/${id}/active`, { method: "PUT", body: { is_active: isActive } }),
 

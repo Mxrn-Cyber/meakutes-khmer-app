@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
@@ -50,6 +51,19 @@ const AdminUsers = () => {
     }
   };
 
+  const removeUser = async (target) => {
+    const ok = window.confirm(
+      `Delete ${target.email} permanently?\n\nTheir reviews, comments and saved places will be deleted too. This cannot be undone.`
+    );
+    if (!ok) return;
+    try {
+      await api.adminDeleteUser(target.id);
+      setUsers((prev) => prev.filter((u) => u.id !== target.id));
+    } catch (err) {
+      alert(err.message || "Failed to delete the user");
+    }
+  };
+
   if (users === null) {
     return <div className="text-gray-500 dark:text-gray-400">{error || "Loading users..."}</div>;
   }
@@ -72,6 +86,7 @@ const AdminUsers = () => {
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Roles</th>
               <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -113,11 +128,23 @@ const AdminUsers = () => {
                     {u.is_active ? "Active" : "Deactivated"}
                   </button>
                 </td>
+                <td className="px-4 py-3 text-right">
+                  {u.id !== currentUser?.id && (
+                    <button
+                      onClick={() => removeUser(u)}
+                      title="Delete user"
+                      aria-label={`Delete ${u.email}`}
+                      className="p-2 text-gray-500 hover:text-red-600"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
                   No users yet.
                 </td>
               </tr>

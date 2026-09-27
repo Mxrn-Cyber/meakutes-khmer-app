@@ -45,3 +45,47 @@ def set_active(
     db.commit()
     db.refresh(target)
     return AdminUserOut.from_user(target)
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_role("admin")),
+):
+    """Permanently delete an account and everything that belongs only to it.
+
+    Removes the user's sessions, Google link, roles, favourites, reviews and
+    comments. Places, news and images they created stay, without an author.
+    """
+    if user_id == admin.id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "You cannot delete your own account")
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+
+    from app import storage
+    from app.models.destination import Destination
+    from app.models.media import Media
+    from app.models.news import NewsEvent
+    from app.models.review import Comment, Favorite, Review, UserActivity
+    from app.models.user import OAuthAccount
+    from app.models.user import Session as SessionModel
+
+    avatar = db.get(Media, target.avatar_media_id) if target.avatar_media_id else None
+    target.avatar_media_id = None
+    target.roles = []
+    db.flush()
+
+    for model in (SessionModel, OAuthAccount, Favorite, Review, Comment):
+        db.query(model).filter(model.user_id == user_id).delete(synchronize_session=False)
+    db.query(UserActivity).filter(UserActivity.user_id == user_id).update({"user_id": None}, synchronize_session=False)
+    db.query(Media).filter(Media.uploaded_by == user_id).update({"uploaded_by": None}, synchronize_session=False)
+    db.query(Destination).filter(Destination.created_by == user_id).update({"created_by": None}, synchronize_session=False)
+    db.query(NewsEvent).filter(NewsEvent.created_by == user_id).update({"created_by": None}, synchronize_session=False)
+
+    if avatar:
+        storage.delete(avatar.url)
+        db.delete(avatar)
+    db.delete(target)
+    db.commit()
