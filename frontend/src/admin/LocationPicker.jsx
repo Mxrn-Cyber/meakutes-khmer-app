@@ -60,12 +60,12 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
     );
   } else if (loadError) {
     body = (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-sm text-rose-600 dark:text-rose-400">
         The map could not load. Check the Google Maps API key and its allowed websites.
       </p>
     );
   } else if (!isLoaded) {
-    body = <div className="h-[320px] rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />;
+    body = <div className="h-[320px] rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />;
   } else {
     body = (
       <GoogleMap
@@ -90,7 +90,7 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          <MapPin size={16} className="text-blue-600" />
+          <MapPin size={16} className="text-brand-600" />
           Location on map
         </span>
         <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -103,7 +103,7 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
       <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
         {GOOGLE_MAPS_API_KEY && !loadError && <span>Click the map or drag the pin to set the location.</span>}
         {point && isLoaded && (
-          <button type="button" onClick={recenter} className="text-blue-600 hover:underline">
+          <button type="button" onClick={recenter} className="text-brand-600 hover:underline dark:text-brand-400">
             Show pin
           </button>
         )}
@@ -112,7 +112,7 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
             href={`https://www.google.com/maps?q=${point.lat},${point.lng}`}
             target="_blank"
             rel="noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-brand-600 hover:underline dark:text-brand-400"
           >
             Open in Google Maps
           </a>

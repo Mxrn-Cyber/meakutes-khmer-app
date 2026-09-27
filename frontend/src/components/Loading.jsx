@@ -1,12 +1,8 @@
-// src/components/Loading.jsx
-import React from "react";
-
-const Loading = () => {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900 bg-opacity-75 z-50">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 dark:border-blue-400"></div>
-    </div>
-  );
-};
+// Thin progress bar at the top of the page while the session is being checked.
+const Loading = () => (
+  <div className="fixed inset-x-0 top-0 z-[90] h-0.5 overflow-hidden bg-brand-100 dark:bg-brand-900/40" role="progressbar" aria-label="Loading">
+    <div className="h-full w-1/3 animate-[loading_1s_ease-in-out_infinite] rounded-full bg-brand-600" />
+  </div>
+);
 
 export default Loading;

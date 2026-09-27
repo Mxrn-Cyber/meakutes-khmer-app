@@ -84,7 +84,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
           </div>
         </form>
 
-        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+        {error && <p className="text-sm text-rose-600 mb-4">{error}</p>}
 
         {loading ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
@@ -101,7 +101,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
                     className="w-9 h-9 rounded-full object-cover shrink-0"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-gray-700 text-blue-700 dark:text-gray-200 flex items-center justify-center font-semibold shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200 flex items-center justify-center font-semibold shrink-0">
                     {(c.user_display_name || "T").charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -116,7 +116,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
                     {(user?.id === c.user_id || isEditor) && (
                       <button
                         onClick={() => remove(c.id)}
-                        className="ml-auto text-xs text-red-500 hover:underline"
+                        className="ml-auto text-xs text-rose-500 hover:underline"
                       >
                         Delete
                       </button>

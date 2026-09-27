@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, Trash2, Copy } from "lucide-react";
 import { api } from "../api/client";
+import { useConfirm, useToast } from "../components/Feedback";
 import { useAuth } from "../context/AuthContext";
 
 const AdminMedia = () => {
+  const confirm = useConfirm();
+  const toast = useToast();
   const { isAdmin } = useAuth();
   const [media, setMedia] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -33,12 +36,13 @@ const AdminMedia = () => {
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm("Delete this image? It will be removed from any destination or news item using it.")) return;
+    if (!(await confirm({ title: "Please confirm", message: "Delete this image? It will be removed from any destination or news item using it.", confirmLabel: "Delete", danger: true }))) return;
     try {
       await api.deleteMedia(item.id);
+      toast.success("Image deleted.");
       load();
     } catch (err) {
-      alert(err.message || "Failed to delete image");
+      toast.error(err.message || "Failed to delete image");
     }
   };
 
@@ -53,8 +57,8 @@ const AdminMedia = () => {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Media Library</h1>
-        <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 cursor-pointer">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">Media Library</h1>
+        <label className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 cursor-pointer">
           <Upload size={18} />
           {uploading ? "Uploading..." : "Upload Images"}
           <input
@@ -70,7 +74,7 @@ const AdminMedia = () => {
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+        <div className="mb-4 rounded-xl px-4 py-3 text-sm bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-900">
           {error}
         </div>
       )}
@@ -81,7 +85,7 @@ const AdminMedia = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
         {media.map((item) => (
-          <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden group relative">
+          <div key={item.id} className="bg-white dark:bg-gray-900 rounded-2xl shadow-card ring-1 ring-gray-900/5 dark:ring-white/10 overflow-hidden group relative">
             <img src={api.mediaUrl(item.url)} alt={item.alt_text || ""} className="w-full aspect-square object-cover" />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
@@ -95,7 +99,7 @@ const AdminMedia = () => {
                 <button
                   onClick={() => handleDelete(item)}
                   title="Delete"
-                  className="p-2 bg-white/90 rounded-full text-red-600 hover:bg-white"
+                  className="p-2 bg-white/90 rounded-full text-rose-600 hover:bg-white"
                 >
                   <Trash2 size={16} />
                 </button>

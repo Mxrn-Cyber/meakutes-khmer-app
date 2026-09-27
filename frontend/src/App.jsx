@@ -19,6 +19,7 @@ import TripDetail from "./pages/TripDetail.jsx";
 import Translator from "./components/Translator.js";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { TripProvider } from "./context/TripContext.jsx";
+import { FeedbackProvider } from "./components/Feedback.jsx";
 import AdminLayout from "./admin/AdminLayout.jsx";
 import AdminDashboard from "./admin/AdminDashboard.jsx";
 import AdminDestinations from "./admin/AdminDestinations.jsx";
@@ -33,6 +34,8 @@ function AppShell() {
   const { pathname } = useLocation();
   // The admin panel has its own full-screen layout (see admin/AdminLayout.jsx).
   const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
+  // AdminLayout renders its own <main>; avoid nesting two.
+  const Main = isAdminArea ? "div" : "main";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -40,7 +43,7 @@ function AppShell() {
       {!isAdminArea && <Navbar />}
       {!isAdminArea && <div className="h-16" aria-hidden="true" />}
       <Translator />
-      <main className={isAdminArea ? "" : "min-h-[60vh]"}>
+      <Main className={isAdminArea ? "" : "min-h-[60vh]"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
@@ -90,7 +93,7 @@ function AppShell() {
             }
           />
         </Routes>
-      </main>
+      </Main>
       {!isAdminArea && <Footer />}
     </div>
   );
@@ -101,7 +104,9 @@ function App() {
     <AuthProvider>
       <TripProvider>
         <HashRouter>
-          <AppShell />
+          <FeedbackProvider>
+            <AppShell />
+          </FeedbackProvider>
         </HashRouter>
       </TripProvider>
     </AuthProvider>

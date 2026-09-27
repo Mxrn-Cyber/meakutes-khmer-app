@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Image as ImageIcon } from "lucide-react";
 import { api } from "../api/client";
+import { useConfirm, useToast } from "../components/Feedback";
 
 const STATUS_OPTIONS = ["draft", "published"];
 
@@ -38,7 +39,7 @@ function toPayload(form) {
 }
 
 const inputClass =
-  "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-xl border-0 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700";
 
 function Field({ label, children }) {
   return (
@@ -50,6 +51,8 @@ function Field({ label, children }) {
 }
 
 const AdminNews = () => {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [items, setItems] = useState(null);
   const [media, setMedia] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -105,12 +108,13 @@ const AdminNews = () => {
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
+    if (!(await confirm({ title: "Please confirm", message: `Delete "${item.title}"? This cannot be undone.`, confirmLabel: "Delete", danger: true }))) return;
     try {
       await api.deleteNews(item.id);
+      toast.success("Item deleted.");
       loadAll();
     } catch (err) {
-      alert(err.message || "Failed to delete news item");
+      toast.error(err.message || "Failed to delete news item");
     }
   };
 
@@ -122,21 +126,21 @@ const AdminNews = () => {
     return (
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             {editingId === "new" ? "New News/Event" : "Edit News/Event"}
           </h1>
-          <button onClick={cancel} className="p-2 rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <button onClick={cancel} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
             <X size={20} />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+          <div className="mb-4 rounded-xl px-4 py-3 text-sm bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-900">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-2xl shadow-card ring-1 ring-gray-900/5 dark:ring-white/10 p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Title">
               <input
@@ -225,8 +229,8 @@ const AdminNews = () => {
                       type="button"
                       key={m.id}
                       onClick={() => setForm({ ...form, media_id: selected ? null : m.id })}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                        selected ? "border-blue-600" : "border-transparent"
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 ${
+                        selected ? "border-brand-600" : "border-transparent"
                       }`}
                     >
                       <img src={api.mediaUrl(m.url)} alt={m.alt_text || ""} className="w-full h-full object-cover" />
@@ -241,14 +245,14 @@ const AdminNews = () => {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
               onClick={cancel}
-              className="px-5 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 ring-1 ring-gray-900/10 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-white/10 dark:hover:bg-gray-800"
             >
               Cancel
             </button>
@@ -261,18 +265,18 @@ const AdminNews = () => {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">News & Events</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">News & Events</h1>
         <button
           onClick={startNew}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
         >
           <Plus size={18} /> New Item
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-card ring-1 ring-gray-900/5 dark:ring-white/10 overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-700/50 text-left text-gray-500 dark:text-gray-400">
+          <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Title</th>
               <th className="px-4 py-3">Date</th>
@@ -282,10 +286,10 @@ const AdminNews = () => {
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id} className="border-t border-gray-100 dark:border-gray-700">
+              <tr key={item.id} className="border-t border-gray-100 transition hover:bg-gray-50/60 dark:border-gray-800 dark:hover:bg-gray-800/40">
                 <td className="px-4 py-3 flex items-center gap-2 text-gray-900 dark:text-white">
                   {item.image ? (
-                    <img src={api.mediaUrl(item.image.url)} className="w-8 h-8 rounded object-cover" />
+                    <img src={api.mediaUrl(item.image.url)} className="h-9 w-9 rounded-xl object-cover" />
                   ) : (
                     <ImageIcon size={16} className="text-gray-300" />
                   )}
@@ -296,18 +300,18 @@ const AdminNews = () => {
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       item.status === "published"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                        : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                     }`}
                   >
                     {item.status}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button title="Edit" aria-label="Edit" onClick={() => startEdit(item)} className="p-2 text-gray-500 hover:text-blue-600">
+                  <button title="Edit" aria-label="Edit" onClick={() => startEdit(item)} className="rounded-full p-2 text-gray-500 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-gray-800">
                     <Pencil size={16} />
                   </button>
-                  <button title="Delete" aria-label="Delete" onClick={() => handleDelete(item)} className="p-2 text-gray-500 hover:text-red-600">
+                  <button title="Delete" aria-label="Delete" onClick={() => handleDelete(item)} className="rounded-full p-2 text-gray-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-gray-800">
                     <Trash2 size={16} />
                   </button>
                 </td>

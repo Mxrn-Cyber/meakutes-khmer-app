@@ -51,10 +51,10 @@ function useTheme() {
 function SidebarContent({ links, onNavigate, user, onLogout }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-200 dark:border-gray-700">
-        <img src="/logo.png" alt="" className="h-9 w-9 rounded-lg object-contain" />
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-200 dark:border-gray-800">
+        <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
         <div className="leading-tight">
-          <p className="font-bold text-gray-900 dark:text-white">Meakutes-Khmer</p>
+          <p className="font-extrabold tracking-tight text-gray-900 dark:text-white">Meakutes<span className="text-brand-600">-Khmer</span></p>
           <p className="text-xs text-gray-500 dark:text-gray-400">Admin panel</p>
         </div>
       </div>
@@ -67,10 +67,10 @@ function SidebarContent({ links, onNavigate, user, onLogout }) {
             end={end}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`
             }
           >
@@ -80,11 +80,11 @@ function SidebarContent({ links, onNavigate, user, onLogout }) {
         ))}
       </nav>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-4 space-y-1">
+      <div className="border-t border-gray-200 dark:border-gray-800 px-3 py-4 space-y-1">
         <Link
           to="/"
           onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <ExternalLink size={18} />
           View website
@@ -92,7 +92,7 @@ function SidebarContent({ links, onNavigate, user, onLogout }) {
         <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-gray-700"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-gray-800"
         >
           <LogOut size={18} />
           Log out
@@ -102,7 +102,7 @@ function SidebarContent({ links, onNavigate, user, onLogout }) {
             {user.avatar_url ? (
               <img src={api.mediaUrl(user.avatar_url)} alt="" className="h-8 w-8 rounded-full object-cover" />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-gray-700 text-blue-700 dark:text-gray-200 flex items-center justify-center text-sm font-semibold">
+              <div className="h-8 w-8 rounded-full bg-brand-100 dark:bg-gray-800 text-brand-700 dark:text-gray-200 flex items-center justify-center text-sm font-semibold">
                 {(user.display_name || user.email || "?").charAt(0).toUpperCase()}
               </div>
             )}
@@ -154,9 +154,9 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 md:flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 md:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:sticky md:top-0 md:h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+      <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:sticky md:top-0 md:h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
         {sidebar}
       </aside>
 
@@ -164,12 +164,12 @@ const AdminLayout = () => {
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-white dark:bg-gray-800 shadow-xl">
+          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-white dark:bg-gray-900 shadow-lift">
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
               aria-label="Close menu"
-              className="absolute right-3 top-4 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="absolute right-3 top-4 rounded-xl p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <X size={20} />
             </button>
@@ -179,12 +179,12 @@ const AdminLayout = () => {
       )}
 
       <div className="flex-1 min-w-0">
-        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-4 py-3 md:px-10">
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-950/90 backdrop-blur px-4 py-3 md:px-10">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className="md:hidden rounded-lg p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="md:hidden rounded-xl p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Menu size={22} />
           </button>
@@ -197,7 +197,7 @@ const AdminLayout = () => {
             onClick={toggleDark}
             aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
             title={dark ? "Light mode" : "Dark mode"}
-            className="rounded-lg p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-xl p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
