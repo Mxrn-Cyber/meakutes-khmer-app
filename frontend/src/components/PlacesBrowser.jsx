@@ -105,7 +105,7 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
         </label>
       </PageHero>
 
-      <div className="sticky top-16 z-30 border-b border-gray-200 bg-gray-50/90 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90">
+      <div className="sticky top-16 z-30 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90">
         <Container className="flex items-center gap-3 py-3">
           <div className="-mx-1 flex flex-1 gap-2 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
             <button type="button" className={chip(!province)} onClick={() => setParam("province", "")}>

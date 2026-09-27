@@ -62,7 +62,7 @@ export default function About() {
         </div>
       </Container>
 
-      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+      <section className="bg-brand-50/60 py-16 dark:bg-gray-900/40 sm:py-20">
         <Container>
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">What you'll find here</h2>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -91,7 +91,7 @@ export default function About() {
           ))}
         </div>
 
-        <div className="mt-16 flex flex-col items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-700 to-sky-500 px-6 py-12 text-center text-white">
+        <div className="mt-16 flex flex-col items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-400 px-6 py-12 text-center text-white">
           <h2 className="text-2xl font-bold sm:text-3xl">Thank you for visiting. Let's explore Cambodia together.</h2>
           <p className="font-khmer text-white/85">សូមអរគុណ! តោះទៅស្វែងយល់ពីកម្ពុជាជាមួយគ្នា</p>
           <Link to="/discover" className={`${buttonClass.secondary} !text-gray-900`}>

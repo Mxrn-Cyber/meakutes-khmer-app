@@ -38,7 +38,7 @@ function AppShell() {
   const Main = isAdminArea ? "div" : "main";
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
       {isLoading && <Loading />}
       {!isAdminArea && <Navbar />}
       {!isAdminArea && <div className="h-16" aria-hidden="true" />}

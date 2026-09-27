@@ -25,7 +25,7 @@ const SOCIAL = [
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+    <footer className="mt-20 border-t border-brand-100 bg-brand-50/40 dark:border-gray-800 dark:bg-gray-950">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:px-8">
         <div>
           <Link to="/" className="flex items-center gap-2.5">

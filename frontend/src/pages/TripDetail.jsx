@@ -502,7 +502,7 @@ export default function TripDetail() {
       </Container>
 
       {nearby.length > 0 && (
-        <section className="border-t border-gray-200 bg-white py-14 dark:border-gray-800 dark:bg-gray-900/40">
+        <section className="border-t border-brand-100 bg-brand-50/60 py-14 dark:border-gray-800 dark:bg-gray-900/40">
           <Container>
             <h2 className="mb-6 text-xl font-bold sm:text-2xl">
               {nearby.some((t) => t.province === trip.province) ? `More in ${trip.province}` : "You may also like"}

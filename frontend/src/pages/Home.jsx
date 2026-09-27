@@ -205,7 +205,7 @@ export default function Home() {
         </div>
       </Container>
 
-      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+      <section className="bg-brand-50/60 py-16 dark:bg-gray-900/40 sm:py-20">
         <Container>
           <SectionHeading
             eyebrow="Explore by province"
@@ -232,7 +232,7 @@ export default function Home() {
         </Container>
       )}
 
-      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+      <section className="bg-brand-50/60 py-16 dark:bg-gray-900/40 sm:py-20">
         <Container>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {[

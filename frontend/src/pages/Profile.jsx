@@ -180,7 +180,7 @@ export default function Profile() {
 
   return (
     <>
-      <div className="h-40 bg-gradient-to-r from-brand-700 via-brand-600 to-sky-500 sm:h-52" />
+      <div className="h-40 bg-gradient-to-r from-brand-600 via-brand-500 to-amber-400 sm:h-52" />
       <Container className="-mt-16 pb-16 sm:-mt-20">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <div className="relative w-fit">
