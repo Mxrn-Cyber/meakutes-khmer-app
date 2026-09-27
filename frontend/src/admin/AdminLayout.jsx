@@ -140,8 +140,8 @@ const AdminLayout = () => {
   }, [menuOpen]);
 
   const handleLogout = async () => {
+    navigate("/login", { state: { message: "Logged out successfully." } });
     await logout();
-    navigate("/login");
   };
 
   const sidebar = (

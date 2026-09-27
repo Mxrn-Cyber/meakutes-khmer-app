@@ -1,569 +1,368 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
-  ChevronDown,
   Moon,
   Sun,
-  Globe,
-  Home,
-  Compass,
-  TrendingUp,
-  Newspaper,
-  Info,
+  Heart,
   User,
   LogOut,
-  Heart,
+  LayoutDashboard,
+  ChevronDown,
+  Trash2,
+  Languages,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTripContext } from "../context/TripContext";
 import { api } from "../api/client";
-import logo from "/logo.png"; // Adjust path as needed
+import { setLanguage } from "./Translator";
+
+const NAV_LINKS = [
+  { to: "/", label: "Home", end: true },
+  { to: "/discover", label: "Discover" },
+  { to: "/popular", label: "Popular" },
+  { to: "/news", label: "News & Events" },
+  { to: "/about", label: "About" },
+];
 
 const favoriteImage = (trip) =>
   trip.images?.[0] ? api.mediaUrl(trip.images[0].url) : "/placeholder-image.jpg";
 
-// Custom throttle function to limit scroll event frequency
-const throttle = (func, limit) => {
-  let inThrottle;
-  return (...args) => {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
-};
+function readStoredTheme() {
+  try {
+    return localStorage.getItem("theme") === "dark";
+  } catch {
+    return false;
+  }
+}
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isFavouriteOpen, setIsFavouriteOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => localStorage.getItem("theme") === "dark"
-  );
-  const [selectedLang, setSelectedLang] = useState("English");
-  const [scrolled, setScrolled] = useState(false);
-  const { user, logout, isEditor } = useAuth();
-  const { favorites: favouriteTrips, removeFromFavorites } = useTripContext();
-  const navigate = useNavigate();
+function currentLangFromCookie() {
+  return /googtrans=\/[a-z]+\/km/.test(document.cookie) ? "km" : "en";
+}
 
+function useClickOutside(ref, onOutside) {
   useEffect(() => {
-    const handleScroll = throttle(() => {
-      setScrolled(window.scrollY > 20);
-    }, 100); // Throttle to 100ms
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".favourite-dropdown")) {
-        setIsFavouriteOpen(false);
-      }
-      if (!event.target.closest(".user-dropdown")) {
-        setIsUserMenuOpen(false);
-      }
-      if (!event.target.closest(".lang-dropdown")) {
-        setIsLangOpen(false);
-      }
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onOutside();
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [ref, onOutside]);
+}
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+function Avatar({ user, size = 32 }) {
+  if (user?.avatar_url) {
+    return (
+      <img
+        src={api.mediaUrl(user.avatar_url)}
+        alt=""
+        style={{ width: size, height: size }}
+        className="rounded-full object-cover ring-2 ring-white dark:ring-gray-900"
+      />
+    );
+  }
+  return (
+    <span
+      style={{ width: size, height: size }}
+      className="grid place-items-center rounded-full bg-brand-600 text-sm font-semibold text-white"
+    >
+      {(user?.display_name || user?.email || "?").charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+const iconButton =
+  "grid h-10 w-10 place-items-center rounded-full text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800";
+
+export default function Navbar() {
+  const { user, logout, isEditor } = useAuth();
+  const { favorites, removeFromFavorites } = useTripContext();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [favOpen, setFavOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+  const [dark, setDark] = useState(readStoredTheme);
+  const [lang, setLang] = useState(currentLangFromCookie);
+
+  const favRef = useRef(null);
+  const userRef = useRef(null);
+  useClickOutside(favRef, () => setFavOpen(false));
+  useClickOutside(userRef, () => setUserOpen(false));
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    try {
+      localStorage.setItem("theme", dark ? "dark" : "light");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [dark]);
 
-  const handleToggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-  };
+  useEffect(() => {
+    setMobileOpen(false);
+    setFavOpen(false);
+    setUserOpen(false);
+  }, [pathname]);
 
-  const handleToggleFavourite = () => {
-    setIsFavouriteOpen(!isFavouriteOpen);
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const switchLanguage = () => {
+    const next = lang === "en" ? "km" : "en";
+    setLang(next);
+    setLanguage(next);
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login", { state: { message: "Logged out successfully!" } });
-      setIsOpen(false);
-      setIsUserMenuOpen(false);
-    } catch (error) {
-      console.error("Logout failed:", error.message);
-    }
+    // Leave protected pages first, so their own redirect doesn't drop the message.
+    navigate("/login", { state: { message: "Logged out successfully." } });
+    await logout();
   };
 
-  const handleFavouriteClick = (trip) => {
-    navigate(`/trip/${trip.id}`);
-    setIsFavouriteOpen(false);
-  };
-
-  const removeFavourite = (tripId, e) => {
-    e.stopPropagation();
-    removeFromFavorites(tripId);
-  };
+  const linkClass = ({ isActive }) =>
+    `rounded-full px-3.5 py-2 text-sm font-medium transition ${
+      isActive
+        ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+    }`;
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-md border-b border-gray-200/30 dark:border-gray-700/30"
-          : "bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition ${
+        scrolled || mobileOpen
+          ? "border-b border-gray-200/80 bg-white/90 shadow-sm backdrop-blur-lg dark:border-gray-800 dark:bg-gray-950/90"
+          : "bg-white/70 backdrop-blur dark:bg-gray-950/70"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center group">
-              <span className="flex items-center space-x-2 group-hover:scale-105 transition-transform duration-200">
-                <img
-                  src={logo}
-                  alt="Meakutes Khmer Logo"
-                  className="h-10 w-auto"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/150x50?text=Logo";
-                  }}
-                />
-                <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                  MEAKUTES-KHMER
-                </span>
-              </span>
-            </Link>
-          </div>
+      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8" aria-label="Main">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5">
+          <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
+          <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
+            Meakutes<span className="text-brand-600">-Khmer</span>
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-1">
-              {[
-                { name: "Home", icon: Home, href: "/" },
-                { name: "Discover", icon: Compass, href: "/discover" },
-                { name: "Popular", icon: TrendingUp, href: "/popular" },
-                { name: "News", icon: Newspaper, href: "/news" },
-                { name: "About", icon: Info, href: "/about" },
-              ].map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="group flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
-                  >
-                    <IconComponent className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+        <div className="ml-6 hidden flex-1 items-center gap-1 lg:flex">
+          {NAV_LINKS.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.end} className={linkClass}>
+              {l.label}
+            </NavLink>
+          ))}
+        </div>
 
-          {/* Desktop Controls */}
-          <div className="hidden md:flex items-center space-x-3">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 group"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5 text-yellow-500 group-hover:rotate-180 transition-transform duration-300" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600 group-hover:rotate-12 transition-transform duration-300" />
-              )}
-            </button>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            onClick={switchLanguage}
+            className="hidden h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 sm:inline-flex"
+            title="Change language"
+          >
+            <Languages size={18} />
+            <span className={lang === "en" ? "font-khmer" : ""}>{lang === "en" ? "ខ្មែរ" : "English"}</span>
+          </button>
 
-            {/* Language Selector */}
-            <div className="relative lang-dropdown">
+          <button
+            type="button"
+            onClick={() => setDark((d) => !d)}
+            className={`${iconButton} hidden sm:grid`}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            title={dark ? "Light mode" : "Dark mode"}
+          >
+            {dark ? <Sun size={19} /> : <Moon size={19} />}
+          </button>
+
+          {user && (
+            <div className="relative" ref={favRef}>
               <button
-                onClick={() => setIsLangOpen(!isLangOpen)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[140px]"
+                type="button"
+                onClick={() => setFavOpen((o) => !o)}
+                className={`${iconButton} relative`}
+                aria-label="Favourites"
+                aria-expanded={favOpen}
               >
-                <Globe className="w-4 h-4 flex-shrink-0" />
-                <span className="text-base">
-                  {selectedLang === "English" ? "🇺🇸" : "🇰🇭"}
-                </span>
-                <span className="truncate">{selectedLang}</span>
-                <ChevronDown
-                  className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-                    isLangOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {isLangOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                  {[
-                    { code: "en", name: "English" },
-                    { code: "kh", name: "Khmer" },
-                  ].map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setSelectedLang(lang.name);
-                        setIsLangOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 text-left"
-                    >
-                      <span className="text-base flex-shrink-0">
-                        {lang.code === "en" ? "🇺🇸" : "🇰🇭"}
-                      </span>
-                      <span>{lang.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Favourite Button */}
-            <div className="relative favourite-dropdown">
-              <button
-                onClick={handleToggleFavourite}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 group relative"
-                aria-label="View favourite trips"
-              >
-                <Heart className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform duration-300" />
-                {favouriteTrips.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                    {favouriteTrips.length}
+                <Heart size={19} />
+                {favorites.length > 0 && (
+                  <span className="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                    {favorites.length}
                   </span>
                 )}
               </button>
-
-              {isFavouriteOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Favourite Trips ({favouriteTrips.length})
-                    </h3>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {favouriteTrips.length === 0 ? (
-                      <div className="px-4 py-8 text-center">
-                        <Heart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No favourite trips yet
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          Click the heart icon on trips to add them here
-                        </p>
-                      </div>
-                    ) : (
-                      favouriteTrips.map((trip) => (
-                        <div
-                          key={trip.id}
-                          onClick={() => handleFavouriteClick(trip)}
-                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors duration-200"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-shrink-0">
-                              <img
-                                src={favoriteImage(trip)}
-                                alt={trip.name}
-                                className="w-12 h-12 rounded-lg object-cover"
-                                onError={(e) => {
-                                  e.target.src = "/placeholder-image.jpg";
-                                }}
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                {trip.name}
-                              </h4>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {trip.province} • {trip.duration}
-                              </p>
-                            </div>
-                            <button
-                              onClick={(e) => removeFavourite(trip.id, e)}
-                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors duration-200"
-                              aria-label="Remove from favourites"
-                            >
-                              <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* User Profile Section */}
-            {user ? (
-              <div className="relative user-dropdown flex items-center space-x-2">
-                <img
-                  src={"https://via.placeholder.com/40"}
-                  alt="User"
-                  className="w-8 h-8 rounded-full object-cover border-2 border-blue-600 dark:border-blue-400"
-                />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden lg:inline truncate max-w-[120px]">
-                  {user.display_name || user.email.split("@")[0]}
-                </span>
-                <div className="relative">
-                  <button
-                    onClick={handleToggleUserMenu}
-                    className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
-                  >
-                    <ChevronDown className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                  </button>
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                      <Link
-                        to="/profile"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <User className="w-4 h-4" />
-                        <span>Profile</span>
-                      </Link>
-                      {isEditor && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <Compass className="w-4 h-4" />
-                          <span>Admin Panel</span>
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
+              {favOpen && (
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+                  <p className="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">
+                    Saved places ({favorites.length})
+                  </p>
+                  {favorites.length === 0 ? (
+                    <p className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Tap the heart on any place to save it here.
+                    </p>
+                  ) : (
+                    <ul className="max-h-80 overflow-y-auto py-1">
+                      {favorites.map((trip) => (
+                        <li key={trip.id} className="flex items-center gap-1 pr-3 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <Link to={`/trip/${trip.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4">
+                            <img src={favoriteImage(trip)} alt="" className="h-11 w-11 rounded-lg object-cover" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium">{trip.name}</span>
+                              <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
+                                {trip.province}
+                              </span>
+                            </span>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => removeFromFavorites(trip.id)}
+                            className="rounded-full p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-gray-700"
+                            aria-label={`Remove ${trip.name}`}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => navigate("/login")}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => navigate("/signup")}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-lg transition-all duration-200"
-                >
-                  Sign Up
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-              aria-label="Toggle menu"
-            >
-              {isOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
               )}
-            </button>
-          </div>
-        </div>
+            </div>
+          )}
 
-        {/* Mobile Navigation */}
-        <div
-          className={`md:hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
-        >
-          <div className="px-3 pt-3 pb-4 space-y-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-lg mt-3 border border-gray-200/30 dark:border-gray-700/30 shadow-lg">
-            {[
-              { name: "Home", icon: Home, href: "/" },
-              { name: "Discover", icon: Compass, href: "/discover" },
-              { name: "Popular", icon: TrendingUp, href: "/popular" },
-              { name: "News", icon: Newspaper, href: "/news" },
-              { name: "About", icon: Info, href: "/about" },
-            ].map((item) => {
-              const IconComponent = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200 w-full"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <IconComponent className="w-5 h-5 flex-shrink-0" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-
-            {/* Mobile Favourite Button */}
-            <div className="relative favourite-dropdown">
+          {user ? (
+            <div className="relative hidden lg:block" ref={userRef}>
               <button
-                onClick={handleToggleFavourite}
-                className="flex items-center w-full px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200"
-                aria-label="View favourite trips"
+                type="button"
+                onClick={() => setUserOpen((o) => !o)}
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 hover:bg-gray-100 dark:hover:bg-gray-800"
+                aria-expanded={userOpen}
               >
-                <Heart className="w-5 h-5 text-red-500 mr-3" />
-                <span>Favourites ({favouriteTrips.length})</span>
+                <Avatar user={user} />
+                <span className="max-w-[8rem] truncate text-sm font-medium">{user.first_name || user.display_name}</span>
+                <ChevronDown size={16} className="text-gray-500" />
               </button>
-
-              {isFavouriteOpen && (
-                <div className="mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Favourite Trips ({favouriteTrips.length})
-                    </h3>
+              {userOpen && (
+                <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1.5 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+                  <div className="border-b border-gray-100 px-4 pb-2.5 pt-1.5 dark:border-gray-800">
+                    <p className="truncate text-sm font-semibold">{user.display_name}</p>
+                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                   </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {favouriteTrips.length === 0 ? (
-                      <div className="px-4 py-8 text-center">
-                        <Heart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No favourite trips yet
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          Click the heart icon on trips to add them here
-                        </p>
-                      </div>
-                    ) : (
-                      favouriteTrips.map((trip) => (
-                        <div
-                          key={trip.id}
-                          onClick={() => handleFavouriteClick(trip)}
-                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors duration-200"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-shrink-0">
-                              <img
-                                src={favoriteImage(trip)}
-                                alt={trip.name}
-                                className="w-12 h-12 rounded-lg object-cover"
-                                onError={(e) => {
-                                  e.target.src = "/placeholder-image.jpg";
-                                }}
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                {trip.name}
-                              </h4>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {trip.province} • {trip.duration}
-                              </p>
-                            </div>
-                            <button
-                              onClick={(e) => removeFavourite(trip.id, e)}
-                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors duration-200"
-                              aria-label="Remove from favourites"
-                            >
-                              <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  <Link to="/profile" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <User size={16} /> My profile
+                  </Link>
+                  {isEditor && (
+                    <Link to="/admin" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <LayoutDashboard size={16} /> Admin panel
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800"
+                  >
+                    <LogOut size={16} /> Log out
+                  </button>
                 </div>
               )}
             </div>
+          ) : (
+            <div className="hidden items-center gap-1 lg:flex">
+              <Link to="/login" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
+                Log in
+              </Link>
+              <Link to="/signup" className="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
+                Sign up
+              </Link>
+            </div>
+          )}
 
-            {/* Mobile Auth Section */}
-            {user ? (
-              <div className="space-y-2 pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 w-full"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <User className="w-5 h-5 flex-shrink-0" />
-                  <span>Profile</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 w-full text-left"
-                >
-                  <LogOut className="w-5 h-5 flex-shrink-0" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="flex space-x-2 pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-400 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg text-center"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/signup");
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 px-4 py-3 rounded-lg text-gray-900 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold text-center transition-all duration-200 border-2 border-blue-500"
-                >
-                  Sign Up
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((o) => !o)}
+            className={`${iconButton} lg:hidden`}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+      </nav>
 
-        {/* Backdrop for mobile menu */}
-        {isOpen && (
-          <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm md:hidden -z-10"
-            onClick={() => setIsOpen(false)}
-          />
-        )}
-
-        {/* Language dropdown backdrop */}
-        {isLangOpen && (
-          <div
-            className="fixed inset-0 -z-10"
-            onClick={() => setIsLangOpen(false)}
-          />
-        )}
-      </div>
-
-      <script type="text/javascript">
-        {`
-          function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-              pageLanguage: 'en',
-              includedLanguages: 'en,kh',
-              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-              autoDisplay: false,
-            }, 'google_translate_element');
-          }
-        `}
-      </script>
-      <script
-        type="text/javascript"
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-      ></script>
-    </nav>
+      {mobileOpen && (
+        <div className="h-[calc(100vh-4rem)] overflow-y-auto border-t border-gray-200 bg-white px-4 pb-8 pt-4 dark:border-gray-800 dark:bg-gray-950 lg:hidden">
+          {user && (
+            <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gray-50 p-3 dark:bg-gray-900">
+              <Avatar user={user} size={40} />
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{user.display_name}</p>
+                <p className="truncate text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+              </div>
+            </div>
+          )}
+          <div className="space-y-1">
+            {NAV_LINKS.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end={l.end}
+                className={({ isActive }) =>
+                  `block rounded-xl px-4 py-3 text-base font-medium ${
+                    isActive
+                      ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                      : "text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  }`
+                }
+              >
+                {l.label}
+              </NavLink>
+            ))}
+          </div>
+          <div className="my-4 grid grid-cols-2 gap-2">
+            <button type="button" onClick={switchLanguage} className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 text-sm font-medium dark:bg-gray-800">
+              <Languages size={18} /> {lang === "en" ? "ខ្មែរ" : "English"}
+            </button>
+            <button type="button" onClick={() => setDark((d) => !d)} className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 text-sm font-medium dark:bg-gray-800">
+              {dark ? <Sun size={18} /> : <Moon size={18} />} {dark ? "Light" : "Dark"}
+            </button>
+          </div>
+          {user ? (
+            <div className="space-y-1 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <Link to="/profile" className="flex items-center gap-3 rounded-xl px-4 py-3 font-medium hover:bg-gray-100 dark:hover:bg-gray-800">
+                <User size={18} /> My profile
+              </Link>
+              {isEditor && (
+                <Link to="/admin" className="flex items-center gap-3 rounded-xl px-4 py-3 font-medium hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <LayoutDashboard size={18} /> Admin panel
+                </Link>
+              )}
+              <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800">
+                <LogOut size={18} /> Log out
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <Link to="/login" className="rounded-xl bg-gray-100 py-3 text-center font-semibold dark:bg-gray-800">
+                Log in
+              </Link>
+              <Link to="/signup" className="rounded-xl bg-brand-600 py-3 text-center font-semibold text-white">
+                Sign up
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+    </header>
   );
-};
-
-export default Navbar;
+}

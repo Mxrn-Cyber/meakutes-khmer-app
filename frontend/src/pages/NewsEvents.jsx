@@ -1,116 +1,192 @@
-import { MapPin } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { MapPin, CalendarDays, CalendarX2, ArrowRight } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
+import { Container, PageHero, EmptyState } from "../components/ui";
+import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
 
-function NewsEvents() {
-  const currentDate = new Date();
-  const navigate = useNavigate();
-  const { newsEvents, isLoading } = useNewsEvents();
+const TABS = [
+  { key: "all", label: "All" },
+  { key: "now", label: "Happening now" },
+  { key: "upcoming", label: "Upcoming" },
+];
 
-  const isEventHappeningNow = (eventDate) => {
-    try {
-      const [startDateStr, endDateStr] = eventDate.includes("-")
-        ? eventDate.split("-")
-        : [eventDate, eventDate];
-
-      const parseDate = (str) => {
-        const months = {
-          January: 0,
-          February: 1,
-          March: 2,
-          April: 3,
-          May: 4,
-          June: 5,
-          July: 6,
-          August: 7,
-          September: 8,
-          October: 9,
-          November: 10,
-          December: 11,
-        };
-        const parts = str.trim().replace(",", "").split(" ");
-        const [month, day, year = "2025"] = parts;
-        return new Date(+year, months[month], +day);
-      };
-
-      const start = parseDate(startDateStr);
-      const end = new Date(parseDate(endDateStr).setHours(23, 59, 59));
-      return currentDate >= start && currentDate <= end;
-    } catch {
-      return false;
-    }
-  };
-
-  const sortedEvents = useMemo(() => {
-    return [...newsEvents].sort((a, b) => {
-      const aNow = isEventHappeningNow(a.date) ? -1 : 1;
-      const bNow = isEventHappeningNow(b.date) ? -1 : 1;
-      if (aNow !== bNow) return aNow - bNow;
-      return a.id - b.id;
-    });
-  }, [newsEvents, currentDate]);
-
-  if (isLoading) {
+function StatusBadge({ item }) {
+  const status = eventStatus(item);
+  if (status === "now") {
     return (
-      <div className="py-24 text-center text-gray-500 dark:text-gray-400">
-        Loading events...
-      </div>
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-semibold text-white">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Happening now
+      </span>
     );
   }
+  const days = daysUntil(item);
+  if (status === "upcoming" && days != null && days <= 60) {
+    return (
+      <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900">
+        In {days} {days === 1 ? "day" : "days"}
+      </span>
+    );
+  }
+  return null;
+}
 
+function DateBadge({ item }) {
+  const b = dateBadge(item);
+  if (!b) return null;
   return (
-    <div className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <h1 className="text-4xl font-bold text-center mb-12 text-blue-600 dark:text-blue-400">
-        Cambodia Events 2025
-      </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {sortedEvents.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 relative"
-          >
-            {isEventHappeningNow(item.date) && (
-              <span className="absolute top-4 left-4 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                Happening Now
-              </span>
-            )}
-            <img
-              src={item.pic}
-              alt={item.title}
-              className="w-full aspect-[3/2] object-cover rounded-t-xl"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/src/assets/default.png";
-              }}
-            />
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {item.title}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-1">
-                <strong>Date:</strong> {item.date}
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 flex items-center gap-1">
-                <MapPin size={14} />
-                <span>{item.location}</span>
-              </p>
-              <p className="text-gray-700 dark:text-gray-200 text-sm mb-4 line-clamp-3">
-                {item.description}
-              </p>
-              <button
-                onClick={() => navigate(`/article/${item.id}`)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1"
-              >
-                <MapPin size={16} />
-                View Details
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="grid w-14 place-items-center rounded-xl bg-white py-1.5 text-center shadow-lift dark:bg-gray-900">
+      <span className="text-[11px] font-bold tracking-wide text-rose-600">{b.month}</span>
+      <span className="text-xl font-extrabold leading-none text-gray-900 dark:text-white">{b.day}</span>
     </div>
   );
 }
 
-export default NewsEvents;
+function EventCard({ item }) {
+  return (
+    <Link
+      to={`/article/${item.id}`}
+      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
+    >
+      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 dark:bg-gray-800">
+        {item.pic && <img src={item.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
+        <div className="absolute left-3 top-3">
+          <DateBadge item={item} />
+        </div>
+        <div className="absolute right-3 top-3">
+          <StatusBadge item={item} />
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <p className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 dark:text-brand-400">
+          <CalendarDays size={15} /> {item.date || "Date to be announced"}
+        </p>
+        <h3 className="mt-1.5 text-lg font-bold leading-snug group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</h3>
+        {item.description && <p className="mt-2 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">{item.description}</p>}
+        <div className="mt-auto flex items-center justify-between pt-4 text-sm">
+          <span className="inline-flex min-w-0 items-center gap-1 text-gray-500 dark:text-gray-400">
+            <MapPin size={14} className="shrink-0" /> <span className="truncate">{item.location || "Cambodia"}</span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-gray-900 dark:text-white">
+            Details <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function FeaturedEvent({ item }) {
+  return (
+    <Link
+      to={`/article/${item.id}`}
+      className="group relative isolate grid overflow-hidden rounded-3xl bg-gray-900 shadow-lift md:grid-cols-2"
+    >
+      <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[340px]">
+        {item.pic && <img src={item.pic} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+      </div>
+      <div className="flex flex-col justify-center p-6 text-white sm:p-10">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <StatusBadge item={item} />
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold">Featured</span>
+        </div>
+        <h2 className="text-2xl font-extrabold sm:text-3xl">{item.title}</h2>
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/80">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays size={15} /> {item.date}
+          </span>
+          {item.location && (
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin size={15} /> {item.location}
+            </span>
+          )}
+        </p>
+        {item.description && <p className="mt-4 line-clamp-3 text-white/85">{item.description}</p>}
+        <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900">
+          Read more <ArrowRight size={16} />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+export default function NewsEvents() {
+  const { newsEvents, isLoading } = useNewsEvents();
+  const [tab, setTab] = useState("all");
+
+  const sorted = useMemo(() => {
+    const rank = { now: 0, upcoming: 1, unknown: 2, past: 3 };
+    return [...newsEvents].sort((a, b) => {
+      const sa = eventStatus(a);
+      const sb = eventStatus(b);
+      if (rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
+      const ra = eventRange(a);
+      const rb = eventRange(b);
+      return (ra?.start || 0) - (rb?.start || 0);
+    });
+  }, [newsEvents]);
+
+  const filtered = tab === "all" ? sorted : sorted.filter((e) => eventStatus(e) === tab);
+  const [featured, ...rest] = filtered;
+  const counts = {
+    all: sorted.length,
+    now: sorted.filter((e) => eventStatus(e) === "now").length,
+    upcoming: sorted.filter((e) => eventStatus(e) === "upcoming").length,
+  };
+
+  return (
+    <>
+      <PageHero
+        image="/Water Festival.png"
+        eyebrow="News & events"
+        title="Festivals and events in Cambodia"
+        subtitle="Plan your trip around Khmer New Year, the Water Festival, Pchum Ben and other celebrations."
+      />
+
+      <Container className="py-10">
+        <div className="mb-8 flex flex-wrap gap-2" role="tablist">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.key}
+              onClick={() => setTab(t.key)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                tab === t.key
+                  ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                  : "bg-white text-gray-700 ring-1 ring-gray-900/10 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:ring-white/10"
+              }`}
+            >
+              {t.label}
+              <span className="ml-1.5 opacity-60">{counts[t.key]}</span>
+            </button>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800" />
+            ))}
+          </div>
+        ) : !featured ? (
+          <EmptyState icon={CalendarX2} title={tab === "now" ? "Nothing is happening right now" : "No events yet"}>
+            {tab === "all" ? "Check back soon for festivals and events." : "Try the other tabs to see more events."}
+          </EmptyState>
+        ) : (
+          <>
+            <FeaturedEvent item={featured} />
+            {rest.length > 0 && (
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {rest.map((e) => (
+                  <EventCard key={e.id} item={e} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </Container>
+    </>
+  );
+}

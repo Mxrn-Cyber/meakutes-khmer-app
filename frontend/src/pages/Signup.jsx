@@ -1,444 +1,207 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { loadGoogleScript } from "../utils/googleAuth";
+import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
+import { buttonClass, inputClass } from "../components/ui";
 
-const SignUp = () => {
+const RULES = [
+  { test: (p) => p.length >= 8, label: "8+ characters" },
+  { test: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p), label: "Upper & lower case" },
+  { test: (p) => /\d/.test(p), label: "A number" },
+];
+
+export default function Signup() {
   const navigate = useNavigate();
   const { register, loginWithGoogle, updateProfile } = useAuth();
-  const googleButtonRef = useRef(null);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agree, setAgree] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [online, setOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
     };
   }, []);
 
-  // Google Identity Services: same account-linking flow as Login, the
-  // backend figures out register-vs-login for a Google account on its own.
-  useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
-    let cancelled = false;
-
-    loadGoogleScript()
-      .then(() => {
-        if (cancelled || !window.google) return;
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response) => {
-            setIsLoading(true);
-            setApiError("");
-            try {
-              await loginWithGoogle(response.credential);
-              navigate("/home", { state: { message: "Signed up with Google!" } });
-            } catch (error) {
-              setApiError(error.message || "Google sign-up failed. Please try again.");
-            } finally {
-              setIsLoading(false);
-            }
-          },
-        });
-        if (googleButtonRef.current) {
-          window.google.accounts.id.renderButton(googleButtonRef.current, {
-            theme: "outline",
-            size: "large",
-            width: 360,
-            text: "signup_with",
-          });
-        }
-      })
-      .catch((error) => console.error(error));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [loginWithGoogle, navigate]);
-
-  const handleChange = (e) => {
+  const change = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
+    setForm((f) => ({ ...f, [name]: value }));
+    if (errors[name]) setErrors((x) => ({ ...x, [name]: "" }));
     setApiError("");
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-    }
-    if (!formData.phone) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\+?[\d\s-()]+$/.test(formData.phone)) {
-      newErrors.phone = "Phone number is invalid";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password =
-        "Password must contain uppercase, lowercase, and number";
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-    if (!agreeToTerms)
-      newErrors.terms = "You must agree to the terms and conditions";
-    return newErrors;
+  const validate = () => {
+    const next = {};
+    if (!form.firstName.trim()) next.firstName = "First name is required";
+    if (!form.lastName.trim()) next.lastName = "Last name is required";
+    if (!form.email) next.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = "Enter a valid email address";
+    if (form.phone && !/^\+?[\d\s\-()]{6,}$/.test(form.phone)) next.phone = "Enter a valid phone number";
+    if (!RULES.every((r) => r.test(form.password))) next.password = "Password must meet all the rules below";
+    if (form.password !== form.confirmPassword) next.confirmPassword = "Passwords do not match";
+    if (!agree) next.terms = "Please accept the terms to continue";
+    return next;
   };
 
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!isOnline) {
-      setApiError("You are offline. Please check your connection.");
-      return;
-    }
-
-    setIsLoading(true);
+    const next = validate();
+    if (Object.keys(next).length) return setErrors(next);
+    if (!online) return setApiError("You are offline. Please check your connection.");
+    setLoading(true);
     setApiError("");
     try {
-      await register({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-      // Phone isn't part of registration (backend keeps it on the profile
-      // endpoint), so save it right after account creation.
-      if (formData.phone) {
-        await updateProfile({ phone: formData.phone }).catch(() => {});
-      }
-      navigate("/home", {
-        state: { message: "Account created successfully! Welcome!" },
-      });
-    } catch (error) {
-      console.error("Signup error:", error);
-      setApiError(error.message || "Signup failed. Please try again.");
+      await register({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
+      // Phone isn't part of registration; the backend keeps it on the profile.
+      if (form.phone) await updateProfile({ phone: form.phone }).catch(() => {});
+      navigate("/", { state: { message: "Account created. Welcome!" } });
+    } catch (err) {
+      setApiError(err.message || "Sign up failed. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const google = async (credential) => {
+    setLoading(true);
+    setApiError("");
+    try {
+      await loginWithGoogle(credential);
+      navigate("/", { state: { message: "Welcome to Meakutes-Khmer!" } });
+    } catch (err) {
+      setApiError(err.message || "Google sign-up failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const passed = RULES.filter((r) => r.test(form.password)).length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Create Account
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Join us and start your journey today
-          </p>
+    <AuthLayout
+      title="Create your account"
+      subtitle="It's free. Save places, write reviews and plan your trip."
+      image="/bayon-temple.png"
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <Alert>{apiError}</Alert>
+
+      <GoogleButton text="signup_with" onCredential={google} />
+      <Divider>or with email</Divider>
+
+      <form onSubmit={submit} noValidate className="space-y-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="First name" id="firstName" error={errors.firstName}>
+            <input id="firstName" name="firstName" autoComplete="given-name" value={form.firstName} onChange={change} className={inputClass} />
+          </Field>
+          <Field label="Last name" id="lastName" error={errors.lastName}>
+            <input id="lastName" name="lastName" autoComplete="family-name" value={form.lastName} onChange={change} className={inputClass} />
+          </Field>
         </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-          {apiError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {apiError}
-              </p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  First Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                      errors.firstName ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="First name"
-                  />
-                </div>
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.firstName}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Last Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                      errors.lastName ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Last name"
-                  />
-                </div>
-                {errors.lastName && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.lastName}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Enter your email"
-                />
-              </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Phone Number
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    errors.phone ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Enter your phone number"
-                />
-              </div>
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.phone}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                      errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.password}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                      errors.confirmPassword
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="Confirm password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  checked={agreeToTerms}
-                  onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
-                  I agree to the{" "}
-                  <Link
-                    to="/terms"
-                    className="text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    to="/privacy"
-                    className="text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                  >
-                    Privacy Policy
-                  </Link>
-                </span>
-              </label>
-              {errors.terms && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.terms}
-                </p>
-              )}
-            </div>
-
+        <Field label="Email" id="email" error={errors.email}>
+          <input id="email" name="email" type="email" autoComplete="email" value={form.email} onChange={change} className={inputClass} placeholder="you@example.com" />
+        </Field>
+        <Field label="Phone (optional)" id="phone" error={errors.phone}>
+          <input id="phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={change} className={inputClass} placeholder="+855 12 345 678" />
+        </Field>
+        <Field label="Password" id="password" error={errors.password}>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={form.password}
+              onChange={change}
+              className={`${inputClass} pr-12`}
+            />
             <button
-              type="submit"
-              disabled={isLoading || !isOnline}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 right-0 grid w-12 place-items-center text-gray-400 hover:text-gray-600"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Creating Account...
-                </div>
-              ) : (
-                "Create Account"
-              )}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-          </form>
-
-          <div className="my-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Or sign up with
-                </span>
-              </div>
-            </div>
           </div>
-
-          <div className="flex justify-center">
-            <div ref={googleButtonRef} />
-            {!import.meta.env.VITE_GOOGLE_CLIENT_ID && (
-              <p className="text-xs text-gray-400">
-                Set VITE_GOOGLE_CLIENT_ID to enable Google sign-up.
-              </p>
-            )}
+          <div className="mt-2 flex gap-1.5" aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className={`h-1 flex-1 rounded-full ${
+                  i < passed ? (passed === 3 ? "bg-emerald-500" : passed === 2 ? "bg-amber-400" : "bg-rose-400") : "bg-gray-200 dark:bg-gray-800"
+                }`}
+              />
+            ))}
           </div>
-
-          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold"
-            >
-              Sign in here
-            </Link>
-          </p>
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            {RULES.map((r) => {
+              const ok = r.test(form.password);
+              return (
+                <li key={r.label} className={`inline-flex items-center gap-1 ${ok ? "text-emerald-600" : "text-gray-500 dark:text-gray-400"}`}>
+                  <Check size={13} className={ok ? "" : "opacity-30"} /> {r.label}
+                </li>
+              );
+            })}
+          </ul>
+        </Field>
+        <Field label="Confirm password" id="confirmPassword" error={errors.confirmPassword}>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            value={form.confirmPassword}
+            onChange={change}
+            className={inputClass}
+          />
+        </Field>
+        <div>
+          <label className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => {
+                setAgree(e.target.checked);
+                if (errors.terms) setErrors((x) => ({ ...x, terms: "" }));
+              }}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-600"
+            />
+            <span>
+              I agree to the{" "}
+              <Link to="/terms" className="font-medium text-brand-600 hover:underline">
+                Terms of use
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="font-medium text-brand-600 hover:underline">
+                Privacy policy
+              </Link>
+              .
+            </span>
+          </label>
+          {errors.terms && <p className="mt-1.5 text-sm text-rose-600">{errors.terms}</p>}
         </div>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className={`${buttonClass.primary} w-full py-3`}>
+          {loading ? "Creating account…" : "Create account"}
+        </button>
+      </form>
+    </AuthLayout>
   );
-};
-
-export default SignUp;
+}

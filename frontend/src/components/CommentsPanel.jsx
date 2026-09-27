@@ -57,13 +57,13 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
   };
 
   return (
-    <section className="py-12 px-6">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+    <section>
+      <div>
+        <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
           Comments {comments.length > 0 && <span className="text-gray-400">({comments.length})</span>}
         </h2>
 
-        <form onSubmit={submit} className="mb-6">
+        <form onSubmit={submit} className="mb-6 rounded-2xl bg-white p-4 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -71,13 +71,13 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
             rows={3}
             disabled={!isAuthenticated || posting}
             placeholder={isAuthenticated ? "Write a comment..." : "Log in to comment"}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent p-3 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-0 bg-gray-50 p-3 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-brand-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
           />
           <div className="mt-2 flex justify-end">
             <button
               type="submit"
               disabled={posting || (isAuthenticated && !body.trim())}
-              className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {isAuthenticated ? (posting ? "Posting..." : "Post comment") : "Log in to comment"}
             </button>
@@ -93,7 +93,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
         ) : (
           <ul className="space-y-4">
             {comments.map((c) => (
-              <li key={c.id} className="flex gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+              <li key={c.id} className="flex gap-3 rounded-2xl bg-white p-4 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                 {c.user_avatar_url ? (
                   <img
                     src={api.mediaUrl(c.user_avatar_url)}

@@ -35,12 +35,12 @@ function AppShell() {
   const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
       {isLoading && <Loading />}
       {!isAdminArea && <Navbar />}
-      {!isAdminArea && <main className="pt-16"></main>}
+      {!isAdminArea && <div className="h-16" aria-hidden="true" />}
       <Translator />
-      <main className={isAdminArea ? "" : "container mx-auto px-4 py-8"}>
+      <main className={isAdminArea ? "" : "min-h-[60vh]"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
@@ -81,7 +81,12 @@ function AppShell() {
           <Route
             path="*"
             element={
-              <h1 className="text-2xl font-bold">404: Page Not Found</h1>
+              <div className="mx-auto max-w-xl px-4 py-24 text-center">
+                <p className="text-sm font-semibold text-brand-600">404</p>
+                <h1 className="mt-2 text-3xl font-bold">Page not found</h1>
+                <p className="mt-3 text-gray-600 dark:text-gray-400">The page you are looking for does not exist.</p>
+                <a href="#/" className="mt-6 inline-block rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Back to home</a>
+              </div>
             }
           />
         </Routes>

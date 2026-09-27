@@ -7,6 +7,28 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "Kantumruy Pro", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+        khmer: ["Kantumruy Pro", "Inter", "system-ui", "sans-serif"],
+      },
+      colors: {
+        brand: {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
+        },
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.06)",
+        lift: "0 12px 32px -8px rgba(16,24,40,.18)",
+      },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
         "slide-up": "slideUp 0.5s ease-out",

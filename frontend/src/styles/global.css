@@ -2,28 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-  /* Default card grid: 1 / 2 / 3 / 4 columns. Tailwind grid-cols-* and gap-* classes still win. */
-  .grid {
-    gap: 2rem;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
-  @media (min-width: 640px) {
-    .grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  body {
+    @apply font-sans bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+    top: 0 !important; /* Google Translate pushes the page down; keep it in place */
   }
-  @media (min-width: 1024px) {
-    .grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  :lang(km), .font-khmer {
+    line-height: 1.7;
   }
-  @media (min-width: 1280px) {
-    .grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
+}
 
+/* Hide Google Translate's own toolbar; our navbar has the language switch. */
+.goog-te-banner-frame,
+.skiptranslate > iframe,
+#goog-gt-tt {
+  display: none !important;
+}
+
+@layer components {
   .animate-dropdown {
     transform-origin: top center;
   }

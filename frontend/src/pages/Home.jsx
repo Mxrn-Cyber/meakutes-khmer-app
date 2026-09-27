@@ -1,485 +1,295 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Search,
-  MapPin,
-  Clock,
-  Users,
-  Filter,
-  SortAsc,
-  SortDesc,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, MapPin, CalendarDays, Star, Map as MapIcon, PartyPopper, ArrowRight } from "lucide-react";
 import { useDestinations } from "../hooks/useDestinations";
-import { useTripContext } from "../context/TripContext";
-import TripCard from "../components/TripCard.jsx";
-import About from "./About.jsx";
-import { Link } from "react-router-dom";
-function Home() {
-  const { destinations: tripsData, isLoading: tripsLoading } = useDestinations({
-    status: "published",
-  });
-  const { rateTrip } = useTripContext();
+import { useNewsEvents } from "../hooks/useNewsEvents";
+import { useAuth } from "../context/AuthContext";
+import {
+  Container,
+  SectionHeading,
+  ViewAllLink,
+  PlaceCard,
+  PlaceCardSkeleton,
+  buttonClass,
+} from "../components/ui";
 
-  // Sample images for slideshow
-  const slideImages = [
-    "/angkor-morning.png",
-    "/angkor-wat.png",
-    "/bayon-temple.png",
-    "/palace.png",
-    "/manument.png",
-    "/Landscape.png",
-    "/monk-front.png",
-  ];
+const SLIDES = [
+  { src: "/angkor-morning.png", caption: "Angkor Wat at sunrise, Siem Reap" },
+  { src: "/bayon-temple.png", caption: "Bayon Temple, Siem Reap" },
+  { src: "/palace.png", caption: "Royal Palace, Phnom Penh" },
+  { src: "/Landscape.png", caption: "Countryside of Cambodia" },
+  { src: "/monk-front.png", caption: "Monks at a temple" },
+];
 
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [tripRatings, setTripRatings] = useState({});
-  const tripsPerPage = 8;
+function Hero({ placeCount, provinceCount, eventCount }) {
+  const [slide, setSlide] = useState(0);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
-  // Reference for the destinations section
-  const destinationsRef = useRef(null);
-
-  // Auto-change slides every 10 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slideImages.length);
-    }, 3000);
+    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
+    return () => clearInterval(t);
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [slideImages.length]);
-
-  // Manual slide navigation
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slideImages.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + slideImages.length) % slideImages.length
-    );
-  };
-
-  // Scroll to destinations section
-  const scrollToDestinations = () => {
-    destinationsRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
-
-  // Provinces
-  const provinces = [
-    "All Provinces",
-    ...[...new Set(tripsData.map((trip) => trip.province))].sort(),
-  ];
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("All Provinces");
-  const [sortBy, setSortBy] = useState("rating");
-  const [sortOrder, setSortOrder] = useState("desc");
-  const [highlightedProvince, setHighlightedProvince] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Handle province click from trip card
-  const handleProvinceClick = (province) => {
-    setSelectedProvince(province);
-    setHighlightedProvince(province);
-    setCurrentPage(1); // Reset to first page on province change
-    setTimeout(() => {
-      setHighlightedProvince("");
-    }, 3000);
-  };
-
-  // Handle trip rating
-  const handleRateTrip = (tripId, rating) => {
-    setTripRatings((prev) => ({
-      ...prev,
-      [tripId]: rating,
-    }));
-    rateTrip(tripId, rating).catch((err) => console.error("Failed to save rating:", err));
-  };
-
-  // Apply user ratings to trips
-  const tripsWithRatings = tripsData.map((trip) => ({
-    ...trip,
-    rating: tripRatings[trip.id] || trip.rating,
-  }));
-
-  // Filter and sort trips
-  const filteredAndSortedTrips = tripsWithRatings
-    .filter((trip) => {
-      const matchesSearch =
-        trip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesProvince =
-        selectedProvince === "All Provinces" ||
-        trip.province === selectedProvince;
-      return matchesSearch && matchesProvince;
-    })
-    .sort((a, b) => {
-      let aValue, bValue;
-      switch (sortBy) {
-        case "rating":
-          aValue = a.rating;
-          bValue = b.rating;
-          break;
-        case "reviews":
-          aValue = a.reviews;
-          bValue = b.reviews;
-          break;
-        case "name":
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-          break;
-        case "accessibility":
-          const accessOrder = { Easy: 1, Moderate: 2, Challenging: 3 };
-          aValue = accessOrder[a.accessibility] || 4;
-          bValue = accessOrder[b.accessibility] || 4;
-          break;
-        default:
-          return 0;
-      }
-      return sortOrder === "asc"
-        ? aValue > bValue
-          ? 1
-          : -1
-        : aValue < bValue
-        ? 1
-        : -1;
-    });
-
-  // Debugging: Log filtered and paginated data
-  console.log("Filtered and Sorted Trips:", filteredAndSortedTrips);
-  const totalPages = Math.ceil(filteredAndSortedTrips.length / tripsPerPage);
-  const paginatedTrips = filteredAndSortedTrips.slice(
-    (currentPage - 1) * tripsPerPage,
-    currentPage * tripsPerPage
-  );
-  console.log("Current Page:", currentPage, "Total Pages:", totalPages);
-  console.log("Paginated Trips:", paginatedTrips);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    destinationsRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
-
-  const toggleSortOrder = () => {
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    setCurrentPage(1); // Reset to first page on sort change
+  const submit = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    navigate(q ? `/discover?q=${encodeURIComponent(q)}` : "/discover");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Hero Section */}
-      <section className="w-full px-4 py-12 lg:py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 max-w-none">
-          <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
-            <div className="relative w-full">
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl w-full h-[400px] lg:h-[500px] xl:h-[600px]">
-                {slideImages.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Cambodia destination ${index + 1}`}
-                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out ${
-                      index === currentSlide
-                        ? "opacity-100 scale-100"
-                        : "opacity-0 scale-105"
-                    }`}
-                    onError={() =>
-                      console.error(`Failed to load slide image ${image}`)
-                    }
-                  />
-                ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-                <button
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:scale-110"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:scale-110"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div className="flex justify-center mt-6 space-x-2">
-                {slideImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentSlide
-                        ? "bg-blue-600 w-8"
-                        : "bg-gray-300 hover:bg-gray-400"
-                    }`}
-                  />
-                ))}
-              </div>
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
-                {currentSlide + 1} / {slideImages.length}
-              </div>
-            </div>
-          </div>
-          <div className="w-full lg:w-1/2 text-center lg:text-left">
-            <div className="inline-block mb-4">
-              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-semibold tracking-wide uppercase">
-                Travelers Point
-              </span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 text-gray-900 dark:text-white leading-tight">
-              We help to find your
-              <span className="text-blue-600 dark:text-blue-400 block mt-2">
-                dream place
-              </span>
-            </h1>
-            <div className="space-y-4 mb-8 text-gray-600 dark:text-gray-300">
-              <p className="text-base lg:text-lg leading-relaxed">
-                Meakutes-Khmer is a web application developed to promote tourism
-                in Cambodia, one of the oldest countries in Southeast Asia with
-                a rich cultural heritage. Cambodia boasts a variety of tourist
-                attractions, from historical resorts like the luxurious and
-                awe-inspiring temples built by Khmer ancestors to innovative
-                modern resorts, stunning mountain landscapes, diverse wildlife,
-                and some of the most beautiful beaches in Asia. These
-                attractions have the potential to draw both national and
-                international visitors. However, the COVID-19 pandemic caused a
-                significant decline in tourism, impacting local livelihoods.
-              </p>
-              <p className="text-base lg:text-lg leading-relaxed">
-                To address this, we, the students of the Department of
-                Information Technology Engineering (8th generation) at Lao
-                Thomorn, under the guidance of our advisor, Ky Sok Lay, created
-                this final-year project. Meakutes-Khmer aims to promote new and
-                beautiful tourist sites across Cambodia, helping Cambodians and
-                foreign visitors discover these areas. By doing so, we hope to
-                benefit society, improve the livelihoods of people around these
-                tourist sites, and contribute to the recovery of Cambodia’s
-                tourism industry.
-              </p>
-              <p className="text-base lg:text-lg leading-relaxed">
-                I hope this website is helpful to boost our tourist sector and
-                promote cambodia to the world.From ITE G8 Student
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button
-                onClick={scrollToDestinations}
-                className="px-8 py-4 text-lg font-semibold bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-blue-700 transform hover:-translate-y-1 transition-all duration-300"
-              >
-                Explore Now
-              </button>
-              <Link to="/about">
-                <button className="px-8 py-4 text-lg font-semibold text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-blue-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 hover:-translate-y-1 transition-all duration-300">
-                  Learn More
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+    <section className="relative isolate -mt-16 flex min-h-[640px] items-end overflow-hidden bg-gray-900 pb-16 pt-32 sm:min-h-[720px] sm:pb-24">
+      {SLIDES.map((s, i) => (
+        <img
+          key={s.src}
+          src={s.src}
+          alt=""
+          className={`absolute inset-0 -z-20 h-full w-full object-cover transition-opacity duration-[1500ms] ${
+            i === slide ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-950/90 via-gray-950/40 to-gray-950/30" />
 
-      {/* Top Destination Section */}
-      <section ref={destinationsRef} className="w-full px-2 pb-12">
-        <div className="text-center max-w-4xl mx-auto mb-12">
-          <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-4 py-2 rounded-full text-sm font-semibold tracking-wide uppercase inline-block mb-4">
-            Top Destination
-          </span>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Explore our top destinations
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Discover the most beautiful and culturally rich destinations that
-            Cambodia has to offer
+      <Container>
+        <div className="max-w-3xl">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white backdrop-blur">
+            <MapPin size={14} /> Kingdom of Cambodia
           </p>
-        </div>
+          <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-6xl">
+            Find your next <span className="text-amber-300">dream place</span> in Cambodia
+          </h1>
+          <p className="mt-3 font-khmer text-lg text-white/90 sm:text-xl">ស្វែងរកទីកន្លែងក្នុងក្តីស្រមៃរបស់អ្នក</p>
 
-        {/* Search and Filter Section */}
-        <div className="max-w-7xl mx-auto mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-            <div className="flex flex-col lg:flex-row gap-6 items-center">
-              <div className="relative flex-1 max-w-md">
-                <Search
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder="Search destinations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-              <div className="relative">
-                <MapPin
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={16}
-                />
-                <select
-                  value={selectedProvince}
-                  onChange={(e) => setSelectedProvince(e.target.value)}
-                  className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white pl-10 pr-10 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-300 min-w-[200px]"
-                >
-                  {provinces.map((province) => (
-                    <option key={province} value={province}>
-                      {province}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                >
-                  <option value="rating">Rating</option>
-                  <option value="reviews">Reviews</option>
-                  <option value="name">Name</option>
-                  <option value="accessibility">Accessibility</option>
-                </select>
-                <button
-                  onClick={toggleSortOrder}
-                  className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300"
-                >
-                  {sortOrder === "asc" ? (
-                    <SortAsc size={20} />
-                  ) : (
-                    <SortDesc size={20} />
-                  )}
-                </button>
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300"
-              >
-                <Filter size={20} />
-              </button>
-            </div>
-            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredAndSortedTrips.length} of {tripsData.length}{" "}
-              destinations
-              {selectedProvince !== "All Provinces" && (
-                <span className="ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-xs">
-                  {selectedProvince}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Trip Cards Grid */}
-        <div className="max-w-7xl mx-auto">
-          {tripsLoading ? (
-            <p className="text-center py-16 text-gray-500 dark:text-gray-400">
-              Loading destinations...
-            </p>
-          ) : paginatedTrips.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {paginatedTrips.map((trip) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  onProvinceClick={handleProvinceClick}
-                  isHighlighted={highlightedProvince === trip.province}
-                  onRateTrip={handleRateTrip}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <div className="text-gray-400 mb-4">
-                <Search size={48} className="mx-auto" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No destinations found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                Try adjusting your search terms or filters to find more
-                destinations.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedProvince("All Provinces");
-                  setCurrentPage(1);
-                }}
-                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-8 space-x-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
+          <form onSubmit={submit} className="mt-8 flex max-w-xl items-center gap-2 rounded-full bg-white p-1.5 shadow-lift">
+            <Search size={20} className="ml-3 shrink-0 text-gray-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search temples, beaches, provinces…"
+              aria-label="Search places"
+              className="min-w-0 flex-1 border-0 bg-transparent px-1 py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+            />
+            <button type="submit" className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+              Search
             </button>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-4 py-2 rounded-full ${
-                  currentPage === index + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                } hover:bg-blue-500 hover:text-white transition-all duration-300`}
-              >
-                {index + 1}
-              </button>
+          </form>
+
+          <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-white">
+            {[
+              [placeCount, "places to visit"],
+              [provinceCount, "provinces"],
+              [eventCount, "festivals & events"],
+            ].map(([n, label]) => (
+              <div key={label} className="flex items-baseline gap-2">
+                <dt className="text-2xl font-bold">{n || "–"}</dt>
+                <dd className="text-sm text-white/80">{label}</dd>
+              </div>
             ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+          </dl>
+        </div>
+
+        <div className="mt-10 flex items-center justify-between gap-4">
+          <div className="flex gap-2" role="tablist" aria-label="Photos">
+            {SLIDES.map((s, i) => (
+              <button
+                key={s.src}
+                type="button"
+                onClick={() => setSlide(i)}
+                aria-label={`Show photo ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === slide ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70"}`}
+              />
+            ))}
           </div>
-        )}
-      </section>
+          <p className="hidden text-xs text-white/70 sm:block">{SLIDES[slide].caption}</p>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+function ProvinceTiles({ places }) {
+  const provinces = useMemo(() => {
+    const map = new Map();
+    for (const p of places) {
+      if (!p.province) continue;
+      const entry = map.get(p.province) || { name: p.province, count: 0, image: p.image };
+      entry.count += 1;
+      map.set(p.province, entry);
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count).slice(0, 9);
+  }, [places]);
+
+  if (!provinces.length) return null;
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {provinces.map((p, i) => (
+        <Link
+          key={p.name}
+          to={`/discover?province=${encodeURIComponent(p.name)}`}
+          className={`group relative isolate overflow-hidden rounded-2xl bg-gray-900 ${
+            i === 0 ? "col-span-2 aspect-[2/1] lg:row-span-2 lg:aspect-auto" : "aspect-[4/3]"
+          } ${i === 8 ? "hidden lg:block" : i === 7 ? "hidden sm:block" : ""}`}
+        >
+          <img src={p.image} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-90" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="flex h-full flex-col justify-end p-4 text-white">
+            <p className={`font-bold ${i === 0 ? "text-2xl" : "text-base sm:text-lg"}`}>{p.name}</p>
+            <p className="text-sm text-white/80">
+              {p.count} {p.count === 1 ? "place" : "places"}
+            </p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }
 
-export default Home;
+function EventCard({ event }) {
+  return (
+    <Link
+      to={`/article/${event.id}`}
+      className="group flex gap-4 rounded-2xl bg-white p-3 shadow-card ring-1 ring-gray-900/5 transition hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
+    >
+      <div className="relative h-24 w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
+        {event.pic && <img src={event.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
+      </div>
+      <div className="min-w-0 py-1">
+        {event.date && (
+          <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
+            <CalendarDays size={13} /> {event.date}
+          </p>
+        )}
+        <h3 className="mt-1 line-clamp-2 font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white">{event.title}</h3>
+        {event.location && (
+          <p className="mt-1 flex items-center gap-1 truncate text-sm text-gray-500 dark:text-gray-400">
+            <MapPin size={13} /> {event.location}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+export default function Home() {
+  const { destinations, isLoading } = useDestinations({ status: "published" });
+  const { newsEvents } = useNewsEvents();
+  const { isAuthenticated } = useAuth();
+
+  const topRated = useMemo(
+    () =>
+      [...destinations]
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0))
+        .slice(0, 8),
+    [destinations]
+  );
+  const provinceCount = useMemo(() => new Set(destinations.map((d) => d.province).filter(Boolean)).size, [destinations]);
+
+  return (
+    <>
+      <Hero placeCount={destinations.length} provinceCount={provinceCount} eventCount={newsEvents.length} />
+
+      <Container className="py-16 sm:py-20">
+        <SectionHeading
+          eyebrow="Top rated"
+          title="Places travellers love"
+          subtitle="Rated and reviewed by visitors to Meakutes-Khmer."
+          action={<ViewAllLink to="/popular">See all popular places</ViewAllLink>}
+        />
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
+          {(isLoading ? Array.from({ length: 4 }, (_, i) => ({ id: `s${i}` })) : topRated).map((trip) => (
+            <div key={trip.id} className="w-[80%] shrink-0 snap-start sm:w-auto">
+              {isLoading ? <PlaceCardSkeleton /> : <PlaceCard trip={trip} />}
+            </div>
+          ))}
+        </div>
+      </Container>
+
+      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+        <Container>
+          <SectionHeading
+            eyebrow="Explore by province"
+            title="Where do you want to go?"
+            subtitle="From the temples of Siem Reap to the coast of Kep and the hills of Mondulkiri."
+            action={<ViewAllLink to="/discover">Browse all places</ViewAllLink>}
+          />
+          <ProvinceTiles places={destinations} />
+        </Container>
+      </section>
+
+      {newsEvents.length > 0 && (
+        <Container className="py-16 sm:py-20">
+          <SectionHeading
+            eyebrow="Festivals & events"
+            title="What's happening in Cambodia"
+            action={<ViewAllLink to="/news">All events</ViewAllLink>}
+          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {newsEvents.slice(0, 6).map((e) => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </div>
+        </Container>
+      )}
+
+      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+        <Container>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[
+              { Icon: Star, title: "Honest reviews", text: "Read ratings and reviews from real visitors before you go." },
+              { Icon: MapIcon, title: "Maps & tips", text: "See each place on the map with the best time to visit and how to get in." },
+              { Icon: PartyPopper, title: "Festivals", text: "Plan around Khmer New Year, the Water Festival, Pchum Ben and more." },
+            ].map(({ Icon, title, text }) => (
+              <div key={title} className="rounded-2xl p-6 ring-1 ring-gray-900/5 dark:ring-white/10">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
+                  <Icon size={22} />
+                </div>
+                <h3 className="mt-4 font-semibold">{title}</h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{text}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <Container className="py-16 sm:py-20">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div className="relative">
+            <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className="aspect-[4/3] w-full rounded-3xl object-cover shadow-lift" />
+            <div className="absolute -bottom-5 right-5 rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
+              <p className="text-2xl font-bold text-brand-600">ITE G8</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Final-year project</p>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Our story</p>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Helping Cambodia's tourism recover</h2>
+            <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-400">
+              <p>
+                Cambodia boasts a variety of tourist attractions, from the awe-inspiring temples built by Khmer
+                ancestors to modern resorts, mountain landscapes, diverse wildlife and some of the most beautiful
+                beaches in Asia. The COVID-19 pandemic caused a significant decline in tourism, impacting local
+                livelihoods.
+              </p>
+              <p>
+                To address this, students of the Department of Information Technology Engineering (8th generation),
+                under the guidance of our advisor, Ky Sok Lay, created Meakutes-Khmer to promote new and beautiful
+                tourist sites across Cambodia for Cambodians and foreign visitors alike.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/about" className={buttonClass.primary}>
+                Read our story <ArrowRight size={16} />
+              </Link>
+              {!isAuthenticated && (
+                <Link to="/signup" className={buttonClass.secondary}>
+                  Create a free account
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </Container>
+    </>
+  );
+}

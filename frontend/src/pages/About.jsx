@@ -1,149 +1,104 @@
-// src/pages/AboutUs.jsx
-import React from "react";
+import { Link } from "react-router-dom";
+import { MapPinned, MessageSquareHeart, Star, Camera, Search, GraduationCap } from "lucide-react";
+import { Container, PageHero, buttonClass } from "../components/ui";
 
-const teamMembers = [
-  {
-    name: "Ky SokLay",
-    role: "Advisor",
-    photo: "/avatar.png",
-  },
-  {
-    name: "Lao Thomorn",
-    role: "Developer",
-    photo: "/avatar.png",
-  },
+const TEAM = [
+  { name: "Ky SokLay", role: "Advisor", photo: "/avatar.png" },
+  { name: "Lao Thomorn", role: "Developer", photo: "/avatar.png" },
 ];
 
-const AboutUs = () => {
+const OFFERS = [
+  { Icon: MapPinned, title: "Destination guides", text: "Places across the provinces of Cambodia, with maps and practical tips." },
+  { Icon: MessageSquareHeart, title: "Real experiences", text: "Stories, reviews and comments shared by travellers." },
+  { Icon: Star, title: "Ratings", text: "Recommendations to help you choose your next adventure." },
+  { Icon: Camera, title: "Photos", text: "See each place before you go." },
+  { Icon: Search, title: "Search & filters", text: "Find places by name, province or popularity." },
+];
+
+export default function About() {
   return (
-    <div className="font-sans text-gray-800 pt-[30px]">
-      <div
-        className="w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] bg-cover bg-center bg-no-repeat flex items-start justify-start px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 pt-[15px] xs:pt-[20px] sm:pt-[25px] md:pt-[30px] lg:pt-[35px] xl:pt-[40px] rounded-[8px] sm:rounded-[10px] mx-1 xs:mx-2 sm:mx-3 md:mx-4 transition-all duration-300 ease-in-out"
-        style={{
-          backgroundImage: "url('/Tumnail.png')",
-          backgroundPosition: "center center",
-          backgroundSize: "cover",
-        }}
-      >
-        {/* <h1 className="text-white text-3xl md:text-5xl font-bold bg-black bg-opacity-40 p-15 rounded-lg text-buttom">
-          About Us
-        </h1> */}
-      </div>
+    <>
+      <PageHero
+        image="/Tumnail.png"
+        eyebrow="About us"
+        title="Bringing Cambodia's beauty closer to every traveller"
+        subtitle="Meakutes-Khmer is a tourism website built to promote and revitalise Cambodia's tourism industry."
+        tall
+      />
 
-      {/* About Us Description */}
-      <section className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-10 items-start">
-          {/* Text Section */}
-          <div className="flex-1">
-            <h2 className="text-xl sm:text-7xl font-bold mb-4">About Us</h2>
-
-            <p className="mb-4 text-sm sm:text-base leading-relaxed">
-              <strong>Meakutes-Khmer</strong> is a tourism promotion website
-              developed as a final-year capstone project by a Year 4 student
-              from the <strong>Royal University of Phnom Penh (RUPP)</strong>,
-              majoring in{" "}
-              <strong>Information Technology Engineering (ITE)</strong>, under
-              the guidance of <strong>Doctor Ky Soklay</strong>.
+      <Container className="py-16 sm:py-20">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
+          <div className="space-y-5 text-[17px] leading-relaxed text-gray-700 dark:text-gray-300">
+            <p className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+              <GraduationCap size={16} /> Final-year capstone project, RUPP
             </p>
-
-            <p className="mb-4 text-sm sm:text-base leading-relaxed">
-              This platform was created with a dual purpose: to apply advanced
-              technical skills learned during four years of academic study, and
-              to actively contribute to the promotion and revitalization of
-              Cambodia's tourism industry—especially after it was heavily
-              impacted by global events in recent years.
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">Our story</h2>
+            <p>
+              <strong className="text-gray-900 dark:text-white">Meakutes-Khmer</strong> was developed as a final-year
+              capstone project by a Year 4 student at the <strong>Royal University of Phnom Penh (RUPP)</strong>, majoring in{" "}
+              <strong>Information Technology Engineering (ITE)</strong>, under the guidance of <strong>Doctor Ky Soklay</strong>.
             </p>
-
-            <p className="mb-4 text-sm sm:text-base leading-relaxed">
-              The website serves as a digital gateway to explore the natural
-              wonders, cultural landmarks, and hidden gems of Cambodia. With an
-              intuitive and responsive user interface, Meakutes-Khmer provides
-              visitors with:
+            <p>
+              The platform has two goals: to apply the technical skills learned over four years of study, and to help
+              promote and revitalise Cambodia's tourism industry, which was heavily affected by global events in recent
+              years.
             </p>
-
-            <ul className="list-disc list-inside mb-4 text-sm sm:text-base leading-relaxed">
-              <li>Destination guides across all provinces of Cambodia</li>
-              <li>Real travel experiences and stories shared by users</li>
-              <li>
-                Ratings and recommendations to help users choose their next
-                adventure
-              </li>
-              <li>
-                User-generated content such as trip posts, reviews, and photos
-              </li>
-              <li>
-                Search and filter tools based on location, popularity, or travel
-                category
-              </li>
-            </ul>
-
-            <p className="mb-4 text-sm sm:text-base leading-relaxed">
-              This project reflects my passion for technology, innovation, and
-              national pride. Through it, I aim to bridge modern digital
-              solutions with the timeless beauty of Cambodian tourism. I believe
-              that by making tourism information more accessible and engaging,
-              we can inspire both local and international travelers to discover
-              more about the Kingdom of Wonder.
+            <p>
+              It reflects a passion for technology, innovation and national pride. By making tourism information easier to
+              find and more engaging, we hope to inspire both local and international travellers to discover more of the
+              Kingdom of Wonder.
             </p>
-
-            <p className="mb-4 text-sm sm:text-base leading-relaxed">
-              Special thanks to <strong>Doctor Ky Soklay</strong> for his
-              valuable advice, mentorship, and continuous support throughout
-              this project. His guidance played a crucial role in shaping the
-              vision and execution of Meakutes-Khmer.
-            </p>
-
-            <p className="text-sm sm:text-base leading-relaxed">
-              Thank you for visiting and supporting this journey. Together,
-              let's explore Cambodia.
+            <p>
+              Special thanks to <strong>Doctor Ky Soklay</strong> for his advice, mentorship and continuous support, which
+              shaped the vision and execution of Meakutes-Khmer.
             </p>
           </div>
-
-          {/* Group Photo with Portrait Orientation and Hover Animation */}
-          <div className="w-full sm:w-[200px] md:w-[260px] lg:w-[280px] xl:w-[400px] flex-shrink-0 mx-auto lg:mx-0">
-            <div className="overflow-hidden rounded-xl shadow-lg">
-              <img
-                src="/Trip-Image/about-team.png"
-                alt="Our Group"
-                className="w-full h-[400px] sm:h-[450px] md:h-[400px] lg:h-[450px] xl:h-[600px] object-cover transition-all duration-500 ease-in-out hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:brightness-110"
-              />
-            </div>
-          </div>
+          <img
+            src="/Trip-Image/about-team.png"
+            alt="The Meakutes-Khmer team"
+            loading="lazy"
+            className="aspect-[4/5] w-full rounded-3xl object-cover shadow-lift"
+          />
         </div>
-      </section>
+      </Container>
 
-      {/* Our Team Section */}
-      <section className="py-8 sm:py-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl font-bold mb-8 sm:mb-10 text-center sm:text-left">
-            Our Team
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 justify-items-center">
-            {teamMembers.map((member, index) => (
-              <div
-                key={index}
-                className="text-center bg-darkgrey shadow-md p-3 sm:p-4 rounded-lg w-full max-w-[240px] sm:max-w-[260px] transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105 hover:-translate-y-2 group"
-              >
-                <div className="overflow-hidden rounded-lg">
-                  <img
-                    src={member.photo}
-                    alt={member.name}
-                    className="rounded-lg w-full h-48 sm:h-56 md:h-60 object-cover transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:rotate-1 group-hover:brightness-110 group-hover:contrast-110"
-                  />
+      <section className="bg-white py-16 dark:bg-gray-900/40 sm:py-20">
+        <Container>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">What you'll find here</h2>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {OFFERS.map(({ Icon, title, text }) => (
+              <div key={title} className="rounded-2xl p-6 ring-1 ring-gray-900/5 dark:ring-white/10">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
+                  <Icon size={22} />
                 </div>
-                <h4 className="mt-3 sm:mt-4 font-semibold text-sm sm:text-base transition-colors duration-300 group-hover:text-blue-600">
-                  {member.name}
-                </h4>
-                <p className="text-gray-500 text-xs sm:text-sm transition-colors duration-300 group-hover:text-gray-700">
-                  {member.role}
-                </p>
+                <h3 className="mt-4 font-semibold">{title}</h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{text}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
-    </div>
-  );
-};
 
-export default AboutUs;
+      <Container className="py-16 sm:py-20">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Our team</h2>
+        <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+          {TEAM.map((m) => (
+            <div key={m.name} className="text-center">
+              <img src={m.photo} alt={m.name} loading="lazy" className="mx-auto aspect-square w-full max-w-[200px] rounded-3xl object-cover shadow-card" />
+              <p className="mt-4 font-semibold">{m.name}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{m.role}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-16 flex flex-col items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-700 to-sky-500 px-6 py-12 text-center text-white">
+          <h2 className="text-2xl font-bold sm:text-3xl">Thank you for visiting. Let's explore Cambodia together.</h2>
+          <p className="font-khmer text-white/85">សូមអរគុណ! តោះទៅស្វែងយល់ពីកម្ពុជាជាមួយគ្នា</p>
+          <Link to="/discover" className={`${buttonClass.secondary} !text-gray-900`}>
+            Start exploring
+          </Link>
+        </div>
+      </Container>
+    </>
+  );
+}
