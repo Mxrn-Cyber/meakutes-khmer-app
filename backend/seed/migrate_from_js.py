@@ -52,7 +52,8 @@ def copy_image(db, images_dir: Path | None, relative_path: str | None) -> Media 
         return None
 
     content_type = mimetypes.guess_type(source.name)[0]
-    url = storage.save(f"places/{uuid.uuid4().hex[:8]}-{source.name}", source.read_bytes(), content_type)
+    safe_name = source.name.replace(" ", "-")
+    url = storage.save(f"places/{uuid.uuid4().hex[:8]}-{safe_name}", source.read_bytes(), content_type)
     media = Media(url=url, alt_text=None)
     db.add(media)
     db.flush()
