@@ -62,7 +62,9 @@ const AdminNews = () => {
     api.listMedia().then(setMedia).catch(() => setMedia([]));
   };
 
-  useEffect(loadAll, []);
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   const startNew = () => {
     setForm(emptyForm);
@@ -302,10 +304,10 @@ const AdminNews = () => {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => startEdit(item)} className="p-2 text-gray-500 hover:text-blue-600">
+                  <button title="Edit" aria-label="Edit" onClick={() => startEdit(item)} className="p-2 text-gray-500 hover:text-blue-600">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => handleDelete(item)} className="p-2 text-gray-500 hover:text-red-600">
+                  <button title="Delete" aria-label="Delete" onClick={() => handleDelete(item)} className="p-2 text-gray-500 hover:text-red-600">
                     <Trash2 size={16} />
                   </button>
                 </td>

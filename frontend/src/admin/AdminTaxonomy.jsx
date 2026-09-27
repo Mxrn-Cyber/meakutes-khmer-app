@@ -98,11 +98,11 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
                 </>
               ) : (
                 <>
-                  <button onClick={() => startEdit(item)} className="p-1.5 text-gray-500 hover:text-blue-600">
+                  <button title="Edit" aria-label="Edit" onClick={() => startEdit(item)} className="p-1.5 text-gray-500 hover:text-blue-600">
                     <Pencil size={16} />
                   </button>
                   {canDelete && (
-                    <button onClick={() => handleDelete(item)} className="p-1.5 text-gray-500 hover:text-red-600">
+                    <button title="Delete" aria-label="Delete" onClick={() => handleDelete(item)} className="p-1.5 text-gray-500 hover:text-red-600">
                       <Trash2 size={16} />
                     </button>
                   )}

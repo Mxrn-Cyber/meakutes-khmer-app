@@ -65,7 +65,9 @@ const AdminDestinations = () => {
     api.listMedia().then(setMedia).catch(() => setMedia([]));
   };
 
-  useEffect(loadAll, []);
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   const startNew = () => {
     setForm(emptyForm);
@@ -363,10 +365,10 @@ const AdminDestinations = () => {
                   {d.rating?.toFixed?.(1) ?? d.rating} ({d.reviews_count})
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => startEdit(d)} className="p-2 text-gray-500 hover:text-blue-600">
+                  <button title="Edit" aria-label="Edit" onClick={() => startEdit(d)} className="p-2 text-gray-500 hover:text-blue-600">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => handleDelete(d)} className="p-2 text-gray-500 hover:text-red-600">
+                  <button title="Delete" aria-label="Delete" onClick={() => handleDelete(d)} className="p-2 text-gray-500 hover:text-red-600">
                     <Trash2 size={16} />
                   </button>
                 </td>

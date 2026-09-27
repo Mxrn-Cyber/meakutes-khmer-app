@@ -12,7 +12,9 @@ const AdminMedia = () => {
 
   const load = () => api.listMedia().then(setMedia).catch(() => setMedia([]));
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleFiles = async (files) => {
     setError("");
