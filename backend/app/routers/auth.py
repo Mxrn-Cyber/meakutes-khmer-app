@@ -102,7 +102,10 @@ def google_login(payload: GoogleLoginRequest, response: Response, db: Session = 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Google token") from exc
 
     google_sub = claims["sub"]
-    email = claims.get("email")
+    email = (claims.get("email") or "").lower() or None
+    if email and not claims.get("email_verified"):
+        # Never link to an existing account through an address Google has not verified.
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Your Google email address is not verified")
 
     oauth_account = (
         db.query(OAuthAccount)
