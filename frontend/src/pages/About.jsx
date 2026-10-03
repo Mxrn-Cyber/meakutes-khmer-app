@@ -19,6 +19,7 @@ import { api } from "../api/client";
 import { Container, PageHero, buttonClass, RATIO } from "../components/ui";
 import { useLang, Rich } from "../i18n";
 import { CountUp, reveal } from "../components/motion";
+import { useSiteImage } from "../siteImages";
 
 const STEPS = [
   { Icon: Search, to: "/discover" },
@@ -30,9 +31,9 @@ const OFFER_ICONS = [MapPinned, MessageSquareHeart, Star, Camera, Search, Heart]
 
 // Names, roles and bios are in about.team (en.js / km.js), in the same order.
 const TEAM = [
-  { photo: "/avatar.png", links: [] },
+  { photoKey: "team_1", links: [] },
   {
-    photo: "/avatar.png",
+    photoKey: "team_2",
     links: [
       { Icon: Facebook, href: "https://web.facebook.com/morn.scripter", label: "Facebook" },
       { Icon: Music2, href: "https://www.tiktok.com/@cybermorn", label: "TikTok" },
@@ -54,7 +55,10 @@ const STAT_ITEMS = [
 export default function About() {
   const [stats, setStats] = useState(null);
   const [statsFailed, setStatsFailed] = useState(false);
-  const { t, lang, setLang, num } = useLang();
+  const { t, lang, setLang } = useLang();
+  const banner = useSiteImage("about_banner");
+  const storyPhoto = useSiteImage("about_photo");
+  const teamPhotos = [useSiteImage("team_1"), useSiteImage("team_2")];
 
   useEffect(() => {
     let alive = true;
@@ -70,7 +74,7 @@ export default function About() {
   return (
     <>
       <PageHero
-        image="/Tumnail.png"
+        image={banner.src}
         eyebrow={t("about.eyebrow")}
         title={t("about.title")}
         subtitle={t("about.subtitle")}
@@ -151,7 +155,7 @@ export default function About() {
           </div>
           <img
             data-reveal="zoom"
-            src="/Trip-Image/about-team.png"
+            src={storyPhoto.src}
             alt={t("about.teamPhoto")}
             loading="lazy"
             className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`}
@@ -220,7 +224,7 @@ export default function About() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">{t("about.teamSubtitle")}</p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:max-w-4xl">
             {TEAM.map((person, i) => {
-              const m = { ...person, ...t("about.team")[i] };
+              const m = { ...person, ...t("about.team")[i], photo: teamPhotos[i].src };
               return (
               <article key={i} {...reveal(i, 120)} className="flex gap-5 rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                 <img src={m.photo} alt={m.name} loading="lazy" className={`h-24 w-24 shrink-0 ${RATIO.square} rounded-2xl object-cover ring-4 ring-brand-50 dark:ring-gray-800`} />

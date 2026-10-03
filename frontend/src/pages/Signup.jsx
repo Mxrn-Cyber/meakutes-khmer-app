@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
 import { buttonClass, inputClass } from "../components/ui";
 import { useLang } from "../i18n";
+import { useSiteImage } from "../siteImages";
 
 const RULES = [
   { test: (p) => p.length >= 8, label: "auth.rule8" },
@@ -16,6 +17,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { register, loginWithGoogle, updateProfile } = useAuth();
   const { t, te } = useLang();
+  const sidePhoto = useSiteImage("signup_photo");
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -93,7 +95,7 @@ export default function Signup() {
     <AuthLayout
       title={t("auth.signupTitle")}
       subtitle={t("auth.signupSubtitle")}
-      image="/bayon-temple.png"
+      image={sidePhoto.src}
       footer={
         <>
           {t("auth.haveAccount")}{" "}

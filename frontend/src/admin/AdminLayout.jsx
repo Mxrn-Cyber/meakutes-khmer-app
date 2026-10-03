@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  GalleryHorizontalEnd,
   LayoutDashboard,
   MapPin,
   Newspaper,
@@ -24,6 +25,7 @@ const baseLinks = [
   { to: "/admin/news", label: "News & Events", icon: Newspaper },
   { to: "/admin/taxonomy", label: "Categories & Tags", icon: Tags },
   { to: "/admin/media", label: "Media Library", icon: Image },
+  { to: "/admin/site-images", label: "Site photos", icon: GalleryHorizontalEnd },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
 ];
 

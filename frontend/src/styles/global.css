@@ -112,6 +112,11 @@ img.fade-img.is-loaded {
   100% { background-position: 0 0; }
 }
 
+/* Entrance animations wait until the splash screen starts fading (see preloader.js). */
+html:not(.app-ready) :is(.animate-rise-in, .animate-ken-burns, .animate-page-in) {
+  animation-play-state: paused;
+}
+
 /* Respect "reduce motion" in the visitor's system settings. */
 @media (prefers-reduced-motion: reduce) {
   *,

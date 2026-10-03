@@ -8,6 +8,7 @@ from app import storage
 from app.config import get_settings
 from app.database import get_db
 from app.models.media import Media
+from app.models.site_image import SiteImage
 from app.models.user import User
 from app.schemas.media import MediaOut
 from app.security import require_role
@@ -57,5 +58,7 @@ def delete_media(
     if not media:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Media not found")
     storage.delete(media.url)
+    # Site photo slots using this image go back to their default photo.
+    db.query(SiteImage).filter(SiteImage.media_id == media.id).delete(synchronize_session=False)
     db.delete(media)
     db.commit()

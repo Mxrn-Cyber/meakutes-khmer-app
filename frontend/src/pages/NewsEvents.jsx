@@ -6,6 +6,7 @@ import { Container, PageHero, EmptyState, PlaceCardSkeleton, RATIO } from "../co
 import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
 import { FadeImg, reveal } from "../components/motion";
+import { useSiteImage } from "../siteImages";
 
 const TABS = [
   { key: "all", label: "news.all" },
@@ -122,6 +123,7 @@ function FeaturedEvent({ item }) {
 export default function NewsEvents() {
   const { newsEvents, isLoading } = useNewsEvents();
   const { t, num } = useLang();
+  const banner = useSiteImage("news_banner");
   const [tab, setTab] = useState("all");
 
   const sorted = useMemo(() => {
@@ -147,7 +149,7 @@ export default function NewsEvents() {
   return (
     <>
       <PageHero
-        image="/Water Festival.png"
+        image={banner.src}
         eyebrow={t("news.eyebrow")}
         title={t("news.title")}
         subtitle={t("news.subtitle")}

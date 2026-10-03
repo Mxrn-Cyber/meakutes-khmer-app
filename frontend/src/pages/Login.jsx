@@ -5,12 +5,14 @@ import { useAuth } from "../context/AuthContext";
 import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
 import { buttonClass, inputClass } from "../components/ui";
 import { useLang } from "../i18n";
+import { useSiteImage } from "../siteImages";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loginWithGoogle } = useAuth();
   const { t, te } = useLang();
+  const sidePhoto = useSiteImage("login_photo");
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -77,6 +79,7 @@ export default function Login() {
 
   return (
     <AuthLayout
+      image={sidePhoto.src}
       title={t("auth.loginTitle")}
       subtitle={t("auth.loginSubtitle")}
       footer={

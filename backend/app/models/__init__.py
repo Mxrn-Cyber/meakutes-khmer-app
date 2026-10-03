@@ -12,3 +12,4 @@ from app.models.destination import (  # noqa: F401
 )
 from app.models.news import NewsEvent  # noqa: F401
 from app.models.review import Comment, Favorite, Review, UserActivity  # noqa: F401
+from app.models.site_image import SiteImage  # noqa: F401

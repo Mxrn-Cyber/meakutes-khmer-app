@@ -14,27 +14,68 @@
     <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      // Before anything paints: apply the saved dark mode and language, so the page
+      // doesn't flash white or in the wrong language.
+      (function () {
+        try {
+          var dark = localStorage.getItem("theme") === "dark";
+          if (dark) document.documentElement.classList.add("dark");
+          var lang = localStorage.getItem("mk_lang");
+          if (lang === "km") document.documentElement.lang = "km";
+        } catch (e) {}
+        // Safety net: never keep the splash longer than 8 seconds.
+        setTimeout(function () {
+          var el = document.getElementById("preloader");
+          if (el) el.remove();
+          document.documentElement.classList.add("app-ready");
+        }, 8000);
+      })();
+    </script>
+    <style>
+      #preloader {
+        position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 18px; background: #fff;
+        transition: opacity .45s ease, visibility .45s ease;
+        font-family: Inter, "Kantumruy Pro", system-ui, sans-serif;
+      }
+      html.dark #preloader { background: #030712; }
+      #preloader.pl-done { opacity: 0; visibility: hidden; }
+      .pl-mark { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
+      .pl-mark img { width: 64px; height: 64px; object-fit: contain; animation: pl-breathe 1.6s ease-in-out infinite; }
+      .pl-ring {
+        position: absolute; inset: 0; border-radius: 9999px; border: 3px solid #ffead9;
+        border-top-color: #f88034; animation: pl-spin .9s linear infinite;
+      }
+      html.dark .pl-ring { border-color: #3b2412; border-top-color: #f88034; }
+      .pl-name { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: #111827; animation: pl-fade 1s ease both .15s; }
+      .pl-name span { color: #c55107; }
+      html.dark .pl-name { color: #f9fafb; }
+      html.dark .pl-name span { color: #fa954f; }
+      .pl-bar { width: 140px; height: 3px; border-radius: 9999px; background: #ffead9; overflow: hidden; }
+      html.dark .pl-bar { background: #3b2412; }
+      .pl-bar span { display: block; width: 40%; height: 100%; border-radius: 9999px; background: #f88034; animation: pl-slide 1.1s ease-in-out infinite; }
+      @keyframes pl-spin { to { transform: rotate(360deg); } }
+      @keyframes pl-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+      @keyframes pl-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+      @keyframes pl-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .pl-ring, .pl-mark img, .pl-bar span, .pl-name { animation: none; }
+      }
+    </style>
   </head>
-  <body class="bg-white text-black dark:bg-gray-900 dark:text-white">
-    <div id="root">
-      <header class="bg-white shadow-sm p-4 dark:bg-gray-900">
-        <div class="container mx-auto flex items-center">
-          <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
-            MEAKUTES-KHMER
-          </h1>
-        </div>
-      </header>
-      <main class="container mx-auto p-4">
-        <div class="text-center py-8">
-          <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-4">
-            Welcome to Meakutes Khmer
-          </h2>
-          <p class="text-gray-600 dark:text-gray-400">
-            Finding your good trip in Cambodia here
-          </p>
-        </div>
-      </main>
+  <body>
+    <!-- Splash shown while the app loads. Styled inline so it appears instantly;
+         src/preloader.js fades it out once the app is ready. -->
+    <div id="preloader" role="status" aria-label="Loading Meakutes-Khmer">
+      <div class="pl-mark">
+        <span class="pl-ring"></span>
+        <img src="/logo.png" alt="" width="64" height="64" />
+      </div>
+      <p class="pl-name">Meakutes<span>-Khmer</span></p>
+      <div class="pl-bar"><span></span></div>
     </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

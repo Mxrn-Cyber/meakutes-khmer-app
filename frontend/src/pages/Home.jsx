@@ -6,6 +6,7 @@ import { useNewsEvents } from "../hooks/useNewsEvents";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../i18n";
 import { CountUp, FadeImg, reveal } from "../components/motion";
+import { useSiteImage } from "../siteImages";
 import {
   Container,
   SectionHeading,
@@ -16,18 +17,25 @@ import {
   RATIO,
 } from "../components/ui";
 
-// Captions are in home.slides (en.js / km.js), in the same order.
-const SLIDES = ["/angkor-morning.png", "/bayon-temple.png", "/palace.png", "/Landscape.png", "/monk-front.png"];
+// Photos and captions can be changed in Admin > Site photos (defaults: siteImages.jsx).
+const SLIDE_KEYS = ["home_slide_1", "home_slide_2", "home_slide_3", "home_slide_4", "home_slide_5"];
 const FEATURE_ICONS = [Star, MapIcon, PartyPopper];
 
 function Hero({ placeCount, provinceCount, eventCount }) {
   const [slide, setSlide] = useState(0);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const { t, num } = useLang();
+  const { t } = useLang();
+  const slides = [
+    useSiteImage(SLIDE_KEYS[0]),
+    useSiteImage(SLIDE_KEYS[1]),
+    useSiteImage(SLIDE_KEYS[2]),
+    useSiteImage(SLIDE_KEYS[3]),
+    useSiteImage(SLIDE_KEYS[4]),
+  ];
 
   useEffect(() => {
-    const timer = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
+    const timer = setInterval(() => setSlide((s) => (s + 1) % SLIDE_KEYS.length), 6000);
     return () => clearInterval(timer);
   }, []);
 
@@ -39,9 +47,9 @@ function Hero({ placeCount, provinceCount, eventCount }) {
 
   return (
     <section className="relative isolate -mt-16 flex min-h-[640px] items-end overflow-hidden bg-gray-900 pb-16 pt-32 sm:min-h-[720px] sm:pb-24">
-      {SLIDES.map((src, i) => (
+      {slides.map(({ src }, i) => (
         <div
-          key={src}
+          key={SLIDE_KEYS[i]}
           className={`absolute inset-0 -z-20 overflow-hidden transition-opacity duration-[1500ms] ${
             i === slide ? "opacity-100" : "opacity-0"
           }`}
@@ -101,9 +109,9 @@ function Hero({ placeCount, provinceCount, eventCount }) {
 
         <div className="mt-10 flex items-center justify-between gap-4">
           <div className="flex gap-2" role="tablist" aria-label={t("home.photos")}>
-            {SLIDES.map((src, i) => (
+            {SLIDE_KEYS.map((key, i) => (
               <button
-                key={src}
+                key={key}
                 type="button"
                 onClick={() => setSlide(i)}
                 aria-label={t("home.showPhoto", { n: i + 1 })}
@@ -111,7 +119,7 @@ function Hero({ placeCount, provinceCount, eventCount }) {
               />
             ))}
           </div>
-          <p className="hidden text-xs text-white/70 sm:block">{t("home.slides")[slide]}</p>
+          <p className="hidden text-xs text-white/70 sm:block">{slides[slide].caption}</p>
         </div>
       </Container>
     </section>
@@ -188,6 +196,7 @@ export default function Home() {
   const { newsEvents } = useNewsEvents();
   const { isAuthenticated } = useAuth();
   const { t } = useLang();
+  const storyPhoto = useSiteImage("home_story");
 
   const topRated = useMemo(
     () =>
@@ -272,7 +281,7 @@ export default function Home() {
       <Container className="py-16 sm:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div className="relative" data-reveal="zoom">
-            <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`} />
+            <img src={storyPhoto.src} alt={t("home.storyTitle")} loading="lazy" className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`} />
             <div className="absolute -bottom-5 right-5 animate-float-slow rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
               <p className="text-2xl font-bold text-brand-600">ITE G8</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{t("home.project")}</p>

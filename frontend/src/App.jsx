@@ -18,6 +18,10 @@ import AdminRoute from "./components/AdminRoute.jsx";
 import TripDetail from "./pages/TripDetail.jsx";
 import { LanguageProvider, useLang } from "./i18n";
 import { useScrollReveal } from "./components/motion.jsx";
+import { SiteImagesProvider } from "./siteImages.jsx";
+import { hidePreloader } from "./preloader.js";
+import { useEffect } from "react";
+import AdminSiteImages from "./admin/AdminSiteImages.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { TripProvider } from "./context/TripContext.jsx";
 import { FeedbackProvider } from "./components/Feedback.jsx";
@@ -52,6 +56,10 @@ function AppShell() {
   // AdminLayout renders its own <main>; avoid nesting two.
   const Main = isAdminArea ? "div" : "main";
   useScrollReveal();
+  // Hide the splash once we know who is logged in (the first screen is then final).
+  useEffect(() => {
+    if (!isLoading) hidePreloader();
+  }, [isLoading]);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -93,6 +101,7 @@ function AppShell() {
             <Route path="news" element={<AdminNews />} />
             <Route path="taxonomy" element={<AdminTaxonomy />} />
             <Route path="media" element={<AdminMedia />} />
+            <Route path="site-images" element={<AdminSiteImages />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="users" element={<AdminUsers />} />
           </Route>
@@ -110,6 +119,7 @@ function AppShell() {
 function App() {
   return (
     <LanguageProvider>
+      <SiteImagesProvider>
       <AuthProvider>
         <TripProvider>
           <HashRouter>
@@ -119,6 +129,7 @@ function App() {
           </HashRouter>
         </TripProvider>
       </AuthProvider>
+      </SiteImagesProvider>
     </LanguageProvider>
   );
 }

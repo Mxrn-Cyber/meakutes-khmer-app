@@ -122,6 +122,11 @@ export const api = {
   adminSetUserActive: (id, isActive) =>
     request(`/api/admin/users/${id}/active`, { method: "PUT", body: { is_active: isActive } }),
 
+  // ---- site photos (Admin > Site photos) ----
+  listSiteImages: () => request("/api/site-images"),
+  setSiteImage: (key, payload) => request(`/api/site-images/${key}`, { method: "PUT", body: payload }),
+  resetSiteImage: (key) => request(`/api/site-images/${key}`, { method: "DELETE" }),
+
   // ---- public stats ----
   stats: () => request("/api/stats"),
 
