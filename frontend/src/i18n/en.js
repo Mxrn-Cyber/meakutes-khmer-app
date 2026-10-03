@@ -135,7 +135,7 @@ const en = {
     story1:
       "Cambodia boasts a variety of tourist attractions, from the awe-inspiring temples built by Khmer ancestors to modern resorts, mountain landscapes, diverse wildlife and some of the most beautiful beaches in Asia. The COVID-19 pandemic caused a significant decline in tourism, impacting local livelihoods.",
     story2:
-      "To address this, students of the Department of Information Technology Engineering (8th generation), under the guidance of our advisor, Ky Sok Lay, created Meakutes-Khmer to promote new and beautiful tourist sites across Cambodia for Cambodians and foreign visitors alike.",
+      "To address this, students of the Department of Information Technology Engineering (8th generation), under the guidance of our advisor, Mr. Ky Soklay, created Meakutes-Khmer to promote new and beautiful tourist sites across Cambodia for Cambodians and foreign visitors alike.",
     readStory: "Read our story",
     createAccount: "Create a free account",
   },
@@ -364,10 +364,10 @@ const en = {
     capstone: "Final-year capstone project, RUPP",
     story: "Our story",
     storyP: [
-      "<b>Meakutes-Khmer</b> was developed as a final-year capstone project by a Year 4 student at the <b>Royal University of Phnom Penh (RUPP)</b>, majoring in <b>Information Technology Engineering (ITE)</b>, under the guidance of <b>Doctor Ky Soklay</b>.",
-      "The platform has two goals: to apply the technical skills learned over four years of study, and to help promote and revitalise Cambodia's tourism industry, which was heavily affected by global events in recent years.",
-      "It reflects a passion for technology, innovation and national pride. By making tourism information easier to find and more engaging, we hope to inspire both local and international travellers to discover more of the Kingdom of Wonder.",
-      "Special thanks to <b>Doctor Ky Soklay</b> for his advice, mentorship and continuous support, which shaped the vision and execution of Meakutes-Khmer.",
+      "<b>Meakutes-Khmer</b> is an innovative tourism platform developed as a final-year capstone project by a graduating <b>Information Technology Engineering (ITE)</b> student at the <b>Royal University of Phnom Penh (RUPP)</b>, under the mentorship of <b>Mr. Ky Soklay</b>.",
+      "Born from a passion for technology and cultural preservation, the platform bridges modern engineering with national heritage. By translating four years of technical study into an accessible digital solution, Meakutes-Khmer delivers engaging travel insights designed to revitalize Cambodia’s tourism sector.",
+      "Whether guiding local explorers or welcoming international adventurers, Meakutes-Khmer invites travelers to discover the Kingdom of Wonder through an intuitive digital experience.",
+      "Sincere gratitude to <b>Mr. Ky Soklay</b> for his dedicated mentorship, strategic guidance, and continuous encouragement throughout this project.",
     ],
     teamPhoto: "The Meakutes-Khmer team",
     howEyebrow: "How it works",
@@ -393,7 +393,7 @@ const en = {
       {
         name: "Ky Soklay",
         role: "Project advisor",
-        title: "Doctor, Royal University of Phnom Penh",
+        title: "Royal University of Phnom Penh",
         bio: "Guided the vision of Meakutes-Khmer and mentored the project from idea to launch.",
       },
       {
