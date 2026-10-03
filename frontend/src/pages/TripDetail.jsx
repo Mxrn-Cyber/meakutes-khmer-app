@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import { Container, PlaceCard, Stars, RatingPill, buttonClass, RATIO } from "../components/ui";
 import { useLang } from "../i18n";
+import { FadeImg, reveal } from "../components/motion";
 
 const mapOptions = { zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true };
 
@@ -43,7 +44,7 @@ function Gallery({ images, name, onOpen }) {
   if (images.length <= 1) {
     return (
       <button type="button" onClick={() => onOpen(0)} className="block w-full overflow-hidden rounded-3xl">
-        <img src={images[0]} alt={name} className={`${RATIO.banner} w-full object-cover`} />
+        <FadeImg src={images[0]} alt={name} className={`${RATIO.banner} w-full object-cover`} />
       </button>
     );
   }
@@ -53,7 +54,7 @@ function Gallery({ images, name, onOpen }) {
     <div className="relative">
       {/* Phone: one photo with a counter */}
       <button type="button" onClick={() => onOpen(0)} className="block w-full overflow-hidden rounded-2xl md:hidden">
-        <img src={shown[0]} alt={name} className={`${RATIO.photo} w-full object-cover`} />
+        <FadeImg src={shown[0]} alt={name} className={`${RATIO.photo} w-full object-cover`} />
       </button>
       {/* Tablet and up: mosaic */}
       <div className={`hidden gap-2 overflow-hidden rounded-3xl md:grid ${layout.grid}`}>
@@ -64,7 +65,8 @@ function Gallery({ images, name, onOpen }) {
             onClick={() => onOpen(i)}
             className={`group relative overflow-hidden bg-gray-100 dark:bg-gray-800 ${i === 0 ? layout.main : ""}`}
           >
-            <img src={src} alt={i === 0 ? name : ""} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <FadeImg src={src} alt={i === 0 ? name : ""} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
+            <span className="pointer-events-none absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
           </button>
         ))}
       </div>
@@ -96,7 +98,7 @@ function Lightbox({ images, index, onClose, onIndex }) {
   }, [index, images.length, onClose, onIndex]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-black/95" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[60] flex animate-fade-in flex-col bg-black/95" role="dialog" aria-modal="true">
       <div className="flex items-center justify-between p-4 text-white">
         <span className="text-sm">
           {num(index + 1)} / {num(images.length)}
@@ -106,7 +108,7 @@ function Lightbox({ images, index, onClose, onIndex }) {
         </button>
       </div>
       <div className="relative flex flex-1 items-center justify-center px-4 pb-6">
-        <img src={images[index]} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
+        <img key={index} src={images[index]} alt="" className="max-h-full max-w-full animate-zoom-in rounded-lg object-contain" />
         {images.length > 1 && (
           <>
             <button
@@ -132,10 +134,10 @@ function Lightbox({ images, index, onClose, onIndex }) {
   );
 }
 
-function InfoTile({ icon: Icon, label, value }) {
+function InfoTile({ icon: Icon, label, value, index = 0 }) {
   if (!value) return null;
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-white p-3.5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10 sm:flex-row sm:items-start sm:gap-3 sm:p-4">
+    <div {...reveal(index, 80)} className="flex flex-col gap-2 rounded-2xl bg-white p-3.5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10 sm:flex-row sm:items-start sm:gap-3 sm:p-4">
       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
         <Icon size={20} />
       </div>
@@ -179,6 +181,14 @@ function ReviewsSection({ destinationId }) {
     }
   }, [mine?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Rating bars grow from zero once the reviews have loaded.
+  const [barsReady, setBarsReady] = useState(false);
+  useEffect(() => {
+    if (loading) return;
+    const id = requestAnimationFrame(() => setBarsReady(true));
+    return () => cancelAnimationFrame(id);
+  }, [loading]);
+
   const summary = useMemo(() => {
     const counts = [0, 0, 0, 0, 0];
     reviews.forEach((r) => (counts[r.rating - 1] += 1));
@@ -220,7 +230,10 @@ function ReviewsSection({ destinationId }) {
                 <div key={n} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <span className="w-2">{num(n)}</span>
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                    <div className="h-full rounded-full bg-amber-400" style={{ width: `${pct}%` }} />
+                    <div
+                      className="h-full rounded-full bg-amber-400 transition-[width] duration-700 ease-out"
+                      style={{ width: barsReady ? `${pct}%` : 0, transitionDelay: `${(5 - n) * 80}ms` }}
+                    />
                   </div>
                   <span className="w-4 text-right">{num(c)}</span>
                 </div>
@@ -275,8 +288,8 @@ function ReviewsSection({ destinationId }) {
             {t("trip.noReviews")}
           </p>
         ) : (
-          reviews.map((r) => (
-            <article key={r.id} className="rounded-2xl bg-white p-5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+          reviews.map((r, i) => (
+            <article key={r.id} {...reveal(i % 5)} className="rounded-2xl bg-white p-5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-100 font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">
                   {(r.user_display_name || "T").charAt(0).toUpperCase()}
@@ -469,7 +482,7 @@ export default function TripDetail() {
               onClick={() => (isAuthenticated ? toggleFavorite(trip) : navigate("/login"))}
               className={liked ? `${buttonClass.secondary} !text-rose-600` : buttonClass.secondary}
             >
-              <Heart size={16} className={liked ? "fill-rose-500 text-rose-500" : ""} /> {liked ? t("common.saved") : t("common.save")}
+              <Heart key={liked ? "on" : "off"} size={16} className={liked ? "animate-heart-pop fill-rose-500 text-rose-500" : ""} /> {liked ? t("common.saved") : t("common.save")}
             </button>
           </div>
         </div>
@@ -484,9 +497,9 @@ export default function TripDetail() {
           <div className="space-y-10">
             <div className="grid grid-cols-2 gap-3">
               <InfoTile icon={Clock} label={t("trip.timeNeeded")} value={tv(trip.duration)} />
-              <InfoTile icon={CalendarRange} label={t("trip.bestTime")} value={tv(trip.bestTime)} />
-              <InfoTile icon={Ticket} label={t("trip.access")} value={tv(trip.access)} />
-              <InfoTile icon={Accessibility} label={t("trip.difficulty")} value={tv(trip.accessibility)} />
+              <InfoTile icon={CalendarRange} label={t("trip.bestTime")} value={tv(trip.bestTime)} index={1} />
+              <InfoTile icon={Ticket} label={t("trip.access")} value={tv(trip.access)} index={2} />
+              <InfoTile icon={Accessibility} label={t("trip.difficulty")} value={tv(trip.accessibility)} index={3} />
             </div>
 
             <section>
@@ -534,8 +547,10 @@ export default function TripDetail() {
               {nearby.some((p) => p.province === trip.province) ? t("trip.moreIn", { province: provinceLabel }) : t("trip.alsoLike")}
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {nearby.map((t) => (
-                <PlaceCard key={t.id} trip={t} />
+              {nearby.map((p, i) => (
+                <div key={p.id} {...reveal(i)}>
+                  <PlaceCard trip={p} />
+                </div>
               ))}
             </div>
           </Container>

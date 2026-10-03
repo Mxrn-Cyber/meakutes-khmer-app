@@ -3,6 +3,8 @@ import { Heart, MapPin, Star, Clock, ArrowRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTripContext } from "../context/TripContext";
 import { useLang } from "../i18n";
+import { FadeImg } from "./motion";
+import { useState } from "react";
 
 // Photo shapes used across the site. Upload guide: Admin > Media Library.
 //   photo  4:3  cards, thumbnails, gallery tiles, story images      upload 1600x1200 (min 1200x900)
@@ -21,6 +23,7 @@ export function Container({ className = "", children }) {
 export function SectionHeading({ eyebrow, title, subtitle, action, center = false }) {
   return (
     <div
+      data-reveal=""
       className={`mb-8 flex flex-col gap-4 ${
         center ? "items-center text-center" : "sm:flex-row sm:items-end sm:justify-between"
       }`}
@@ -44,10 +47,10 @@ export function ViewAllLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+      className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
     >
       {children ?? t("common.viewAll")}
-      <ArrowRight size={16} />
+      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
     </Link>
   );
 }
@@ -96,6 +99,7 @@ export function FavoriteButton({ trip, className = "" }) {
   const { isFavorite, toggleFavorite } = useTripContext();
   const { t } = useLang();
   const liked = isFavorite(trip.id);
+  const [popKey, setPopKey] = useState(0);
   return (
     <button
       type="button"
@@ -103,13 +107,18 @@ export function FavoriteButton({ trip, className = "" }) {
         e.preventDefault();
         e.stopPropagation();
         if (!isAuthenticated) return navigate("/login");
+        if (!liked) setPopKey((k) => k + 1);
         toggleFavorite(trip);
       }}
       aria-label={liked ? t("place.unsave") : t("place.save")}
       title={liked ? t("common.saved") : t("common.save")}
-      className={`grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white dark:bg-gray-900/80 ${className}`}
+      className={`grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-110 hover:bg-white active:scale-95 dark:bg-gray-900/80 ${className}`}
     >
-      <Heart size={18} className={liked ? "fill-rose-500 text-rose-500" : "text-gray-700 dark:text-gray-200"} />
+      <Heart
+        key={popKey}
+        size={18}
+        className={`${popKey ? "animate-heart-pop" : ""} ${liked ? "fill-rose-500 text-rose-500" : "text-gray-700 dark:text-gray-200"}`}
+      />
     </button>
   );
 }
@@ -122,14 +131,14 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
   return (
     <Link
       to={`/trip/${trip.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
       <div className={`relative ${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
-        <img
+        <FadeImg
           src={trip.image}
           alt={name}
           loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0" />
         {rank && (
@@ -187,11 +196,11 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
 export function PlaceCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
-      <div className={`${RATIO.photo} animate-pulse bg-gray-200 dark:bg-gray-800`} />
+      <div className={`${RATIO.photo} skeleton`} />
       <div className="space-y-2 p-4">
-        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-        <div className="h-3 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-        <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+        <div className="skeleton h-4 w-2/3 rounded" />
+        <div className="skeleton h-3 w-full rounded" />
+        <div className="skeleton h-3 w-1/2 rounded" />
       </div>
     </div>
   );
@@ -201,14 +210,20 @@ export function PlaceCardSkeleton() {
 export function PageHero({ image, eyebrow, title, subtitle, children, tall = false }) {
   return (
     <section className="relative isolate overflow-hidden bg-gray-900">
-      {image && <img src={image} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-60" />}
+      {image && (
+        <img src={image} alt="" className="absolute inset-0 -z-10 h-full w-full animate-ken-burns object-cover opacity-60" />
+      )}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900/40 via-gray-900/50 to-gray-900/80" />
       <Container className={tall ? "py-24 sm:py-32" : "py-16 sm:py-20"}>
         <div className="max-w-3xl">
-          {eyebrow && <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-brand-200">{eyebrow}</p>}
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">{title}</h1>
-          {subtitle && <p className="mt-4 text-lg text-gray-200">{subtitle}</p>}
-          {children && <div className="mt-8">{children}</div>}
+          {eyebrow && (
+            <p className="mb-3 animate-rise-in text-sm font-semibold uppercase tracking-wider text-brand-200">{eyebrow}</p>
+          )}
+          <h1 className="animate-rise-in text-3xl font-extrabold tracking-tight text-white [animation-delay:80ms] sm:text-5xl">
+            {title}
+          </h1>
+          {subtitle && <p className="mt-4 animate-rise-in text-lg text-gray-200 [animation-delay:160ms]">{subtitle}</p>}
+          {children && <div className="mt-8 animate-rise-in [animation-delay:240ms]">{children}</div>}
         </div>
       </Container>
     </section>
@@ -217,7 +232,7 @@ export function PageHero({ image, eyebrow, title, subtitle, children, tall = fal
 
 export function EmptyState({ icon: Icon, title, children, action }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
+    <div className="animate-zoom-in rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
       {Icon && (
         <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
           <Icon size={22} />
@@ -232,11 +247,11 @@ export function EmptyState({ icon: Icon, title, children, action }) {
 
 export const buttonClass = {
   primary:
-    "inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-md active:translate-y-0 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-60",
   secondary:
-    "inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-900/10 transition hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-white/10 dark:hover:bg-gray-700",
+    "inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-900/10 transition hover:-translate-y-px hover:bg-gray-50 active:translate-y-0 active:scale-[.98] dark:bg-gray-800 dark:text-white dark:ring-white/10 dark:hover:bg-gray-700",
   ghost:
-    "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800",
+    "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 active:scale-[.98] dark:text-gray-200 dark:hover:bg-gray-800",
 };
 
 export const inputClass =

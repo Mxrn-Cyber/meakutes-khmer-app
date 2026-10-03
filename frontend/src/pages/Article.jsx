@@ -6,6 +6,7 @@ import CommentsPanel from "../components/CommentsPanel";
 import { Container, buttonClass, RATIO } from "../components/ui";
 import { eventStatus, daysUntil, googleCalendarUrl, downloadIcs, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
+import { FadeImg, reveal } from "../components/motion";
 
 function Fact({ icon: Icon, label, value }) {
   if (!value) return null;
@@ -83,7 +84,7 @@ export default function Article() {
   return (
     <>
       <section className="relative isolate overflow-hidden bg-gray-900">
-        {item.pic && <img src={item.pic} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70" />}
+        {item.pic && <img src={item.pic} alt="" className="absolute inset-0 -z-10 h-full w-full animate-ken-burns object-cover opacity-70" />}
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-950 via-gray-950/50 to-gray-950/20" />
         <Container className="flex min-h-[380px] flex-col justify-end pb-10 pt-24 sm:min-h-[460px]">
           <Link to="/news" className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur hover:bg-white/25">
@@ -106,7 +107,7 @@ export default function Article() {
                   {t("common.inDays", { count: days })}
                 </span>
               ) : null}
-              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">{title}</h1>
+              <h1 className="animate-rise-in text-3xl font-extrabold tracking-tight text-white sm:text-5xl">{title}</h1>
               <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-white/85">
                 {item.date && (
                   <span className="inline-flex items-center gap-1.5">
@@ -170,14 +171,15 @@ export default function Article() {
           <Container>
             <h2 className="mb-6 text-xl font-bold sm:text-2xl">{t("article.others")}</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((e) => (
+              {related.map((e, i) => (
                 <Link
                   key={e.id}
+                  {...reveal(i, 90, "fade")}
                   to={`/article/${e.id}`}
                   className="group overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
                 >
                   <div className={`${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
-                    {e.pic && <img src={e.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
+                    {e.pic && <FadeImg src={e.pic} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />}
                   </div>
                   <div className="p-5">
                     <p className="text-sm font-medium text-brand-600 dark:text-brand-400">{tv(e.date)}</p>

@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X, MapPinned, ChevronLeft, ChevronRight } fr
 import { useDestinations } from "../hooks/useDestinations";
 import { Container, PageHero, PlaceCard, PlaceCardSkeleton, EmptyState, buttonClass } from "./ui";
 import { useLang } from "../i18n";
+import { reveal } from "./motion";
 
 const PER_PAGE = 12;
 const ACCESS_ORDER = { Easy: 1, Moderate: 2, Challenging: 3 };
@@ -88,7 +89,7 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
   };
 
   const chip = (active) =>
-    `shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+    `shrink-0 rounded-full px-4 py-2 text-sm font-medium transition duration-200 active:scale-95 ${
       active
         ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
         : "bg-white text-gray-700 ring-1 ring-gray-900/10 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:ring-white/10 dark:hover:bg-gray-800"
@@ -205,12 +206,13 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {pageItems.map((trip, i) => (
-              <PlaceCard
-                key={trip.id}
-                trip={trip}
-                rank={showRank && sort === "rating" && !filtersActive ? (current - 1) * PER_PAGE + i + 1 : undefined}
-                onProvinceClick={(p) => setParam("province", p)}
-              />
+              <div key={trip.id} {...reveal(i % 4, 70)}>
+                <PlaceCard
+                  trip={trip}
+                  rank={showRank && sort === "rating" && !filtersActive ? (current - 1) * PER_PAGE + i + 1 : undefined}
+                  onProvinceClick={(p) => setParam("province", p)}
+                />
+              </div>
             ))}
           </div>
         )}

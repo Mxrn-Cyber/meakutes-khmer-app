@@ -255,7 +255,7 @@ export default function Profile() {
           ))}
         </div>
 
-        <div className="mt-8">
+        <div key={tab} className="mt-8 animate-page-in">
           <Alert tone="success">{success}</Alert>
           <Alert>{error}</Alert>
 

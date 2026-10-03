@@ -63,3 +63,67 @@ html[lang="km"] :is(h1, h2, h3, h4) {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
+
+/* ---------- Motion ---------- */
+
+/* Scroll reveal: elements with data-reveal fade up when they enter the screen.
+   Only hidden once JavaScript has started (html.reveal-ready), so nothing stays
+   invisible if the script fails. Delay: style={{ "--reveal-delay": "120ms" }}. */
+html.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html.reveal-ready [data-reveal="fade"] {
+  transform: none;
+}
+html.reveal-ready [data-reveal="zoom"] {
+  transform: scale(0.96);
+}
+html.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Photos fade in once loaded instead of popping in. */
+img.fade-img {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+img.fade-img.is-loaded {
+  opacity: 1;
+}
+
+/* Shimmering placeholder while content loads. */
+.skeleton {
+  background: linear-gradient(90deg, rgb(229 231 235) 25%, rgb(243 244 246) 37%, rgb(229 231 235) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, rgb(31 41 55) 25%, rgb(55 65 81) 37%, rgb(31 41 55) 63%);
+  background-size: 400% 100%;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Respect "reduce motion" in the visitor's system settings. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html.reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

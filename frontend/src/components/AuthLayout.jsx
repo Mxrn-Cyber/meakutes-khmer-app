@@ -8,9 +8,9 @@ export function AuthLayout({ title, subtitle, children, footer, image = "/angkor
   return (
     <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-gray-900 lg:block">
-        <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
+        <img src={image} alt="" className="absolute inset-0 h-full w-full animate-ken-burns object-cover opacity-80" />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-950/30 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-12 text-white">
+        <div className="absolute inset-x-0 bottom-0 animate-rise-in p-12 text-white [animation-delay:200ms]">
           <p className="text-3xl font-extrabold leading-tight">
             {t("auth.sideTitle1")}
             <br />
@@ -26,7 +26,7 @@ export function AuthLayout({ title, subtitle, children, footer, image = "/angkor
       </div>
 
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md animate-rise-in">
           <Link to="/" className="mb-8 inline-flex items-center gap-2.5 lg:hidden">
             <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
             <span className="text-lg font-extrabold">
@@ -121,5 +121,5 @@ export function Alert({ children, tone = "error" }) {
     tone === "error"
       ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-900"
       : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-900";
-  return <div className={`mb-5 rounded-xl px-4 py-3 text-sm ring-1 ${styles}`}>{children}</div>;
+  return <div role="alert" className={`mb-5 animate-slide-down rounded-xl px-4 py-3 text-sm ring-1 ${styles}`}>{children}</div>;
 }

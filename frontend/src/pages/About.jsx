@@ -18,6 +18,7 @@ import {
 import { api } from "../api/client";
 import { Container, PageHero, buttonClass, RATIO } from "../components/ui";
 import { useLang, Rich } from "../i18n";
+import { CountUp, reveal } from "../components/motion";
 
 const STEPS = [
   { Icon: Search, to: "/discover" },
@@ -79,12 +80,12 @@ export default function About() {
       {/* Live numbers */}
       {!statsFailed && (
         <Container className="relative z-10 -mt-12">
-          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-gray-900/5 shadow-lift ring-1 ring-gray-900/5 dark:bg-white/10 dark:ring-white/10 lg:grid-cols-4">
+          <dl className="grid animate-rise-in grid-cols-2 gap-px overflow-hidden rounded-3xl [animation-delay:300ms] bg-gray-900/5 shadow-lift ring-1 ring-gray-900/5 dark:bg-white/10 dark:ring-white/10 lg:grid-cols-4">
             {STAT_ITEMS.map(({ key, label }) => (
               <div key={key} className="bg-white px-6 py-6 text-center dark:bg-gray-900 sm:py-8">
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t(label)}</dt>
                 <dd className="mt-1 text-3xl font-extrabold tracking-tight text-brand-600 dark:text-brand-400 sm:text-4xl">
-                  {stats ? num(stats[key] ?? 0) : <span className="mx-auto block h-9 w-16 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />}
+                  {stats ? <CountUp value={stats[key] ?? 0} /> : <span className="skeleton mx-auto block h-9 w-16 rounded-lg" />}
                 </dd>
               </div>
             ))}
@@ -93,7 +94,9 @@ export default function About() {
             <p className="mt-3 flex items-center justify-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
               <Star size={15} className="fill-amber-400 text-amber-400" />
               {t("about.avgA")}
-              <strong className="text-gray-800 dark:text-gray-200">{num(stats.average_rating.toFixed(1))}</strong>
+              <strong className="text-gray-800 dark:text-gray-200">
+                <CountUp value={stats.average_rating} decimals={1} />
+              </strong>
               {t("about.avgB")}
             </p>
           )}
@@ -147,6 +150,7 @@ export default function About() {
             </div>
           </div>
           <img
+            data-reveal="zoom"
             src="/Trip-Image/about-team.png"
             alt={t("about.teamPhoto")}
             loading="lazy"
@@ -166,9 +170,9 @@ export default function About() {
             {STEPS.map(({ Icon, to }, i) => {
               const { title, text, cta } = t("about.steps")[i];
               return (
-              <li key={to} className="relative flex flex-col rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+              <li key={to} {...reveal(i, 120)} className="group relative flex flex-col rounded-3xl bg-white p-6 shadow-card transition-shadow duration-300 hover:shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-600 text-white">
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-600 text-white transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                     <Icon size={22} />
                   </span>
                   <span className="text-sm font-bold text-brand-600 dark:text-brand-400">{t("about.step", { n: i + 1 })}</span>
@@ -195,8 +199,8 @@ export default function About() {
           {t("about.offers").map(({ title, text }, i) => {
             const Icon = OFFER_ICONS[i];
             return (
-            <div key={i} className="flex gap-4 rounded-2xl p-5 ring-1 ring-gray-900/5 transition hover:shadow-card dark:ring-white/10">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
+            <div key={i} {...reveal(i, 70)} className="group flex gap-4 rounded-2xl p-5 ring-1 ring-gray-900/5 transition-shadow duration-300 hover:shadow-card dark:ring-white/10">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 dark:bg-brand-900/30 dark:text-brand-300">
                 <Icon size={22} />
               </div>
               <div>
@@ -218,7 +222,7 @@ export default function About() {
             {TEAM.map((person, i) => {
               const m = { ...person, ...t("about.team")[i] };
               return (
-              <article key={i} className="flex gap-5 rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+              <article key={i} {...reveal(i, 120)} className="flex gap-5 rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                 <img src={m.photo} alt={m.name} loading="lazy" className={`h-24 w-24 shrink-0 ${RATIO.square} rounded-2xl object-cover ring-4 ring-brand-50 dark:ring-gray-800`} />
                 <div className="min-w-0">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{m.name}</h3>
@@ -251,7 +255,10 @@ export default function About() {
 
       {/* Call to action */}
       <Container className="py-16 sm:py-20">
-        <div className="flex flex-col items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-400 px-6 py-12 text-center text-white">
+        <div
+          data-reveal="zoom"
+          className="flex flex-col items-center gap-5 rounded-3xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-400 bg-[length:200%_100%] px-6 py-12 text-center text-white transition-[background-position] duration-1000 hover:bg-right"
+        >
           <h2 className="text-2xl font-bold sm:text-3xl">{t("about.thanks")}</h2>
           <p lang={lang === "km" ? "en" : "km"} className="text-white/90">
             {t("about.thanksKhmer")}

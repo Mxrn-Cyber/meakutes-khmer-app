@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import TripDetail from "./pages/TripDetail.jsx";
 import { LanguageProvider, useLang } from "./i18n";
+import { useScrollReveal } from "./components/motion.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { TripProvider } from "./context/TripContext.jsx";
 import { FeedbackProvider } from "./components/Feedback.jsx";
@@ -50,6 +51,7 @@ function AppShell() {
   const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
   // AdminLayout renders its own <main>; avoid nesting two.
   const Main = isAdminArea ? "div" : "main";
+  useScrollReveal();
 
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -57,6 +59,8 @@ function AppShell() {
       {!isAdminArea && <Navbar />}
       {!isAdminArea && <div className="h-16" aria-hidden="true" />}
       <Main className={isAdminArea ? "" : "min-h-[60vh]"}>
+        {/* Keyed by page so each page fades in when you navigate. */}
+        <div key={isAdminArea ? "admin" : pathname} className={isAdminArea ? "" : "animate-page-in"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
@@ -96,6 +100,7 @@ function AppShell() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </div>
       </Main>
       {!isAdminArea && <Footer />}
     </div>

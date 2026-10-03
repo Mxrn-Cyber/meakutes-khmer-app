@@ -103,7 +103,7 @@ export default function LanguageMenu({ variant = "dropdown", className = "" }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10"
+          className="absolute right-0 mt-2 w-64 origin-top-right animate-pop rounded-2xl bg-white p-2 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10"
         >
           <Lists choice={choice} onPick={pick} t={t} />
         </div>

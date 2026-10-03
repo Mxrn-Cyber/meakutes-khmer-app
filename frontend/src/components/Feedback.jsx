@@ -74,8 +74,8 @@ function ConfirmDialog({ title, message, confirmLabel, cancelLabel, danger, onCl
 
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className="absolute inset-0 bg-gray-950/50 backdrop-blur-sm" onClick={() => onClose(false)} />
-      <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+      <div className="absolute inset-0 animate-fade-in bg-gray-950/50 backdrop-blur-sm" onClick={() => onClose(false)} />
+      <div className="relative w-full max-w-md animate-zoom-in rounded-3xl bg-white p-6 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
         <div className="flex gap-4">
           <div
             className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${
@@ -127,7 +127,7 @@ function Toast({ type, message, onClose }) {
   return (
     <div
       role="status"
-      className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl bg-white px-4 py-3 text-sm shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10"
+      className="pointer-events-auto flex w-full max-w-sm animate-toast-in items-start gap-3 rounded-2xl bg-white px-4 py-3 text-sm shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10"
     >
       <Icon size={20} className={`mt-px shrink-0 ${cls}`} />
       <p className="flex-1 text-gray-800 dark:text-gray-100">{message}</p>

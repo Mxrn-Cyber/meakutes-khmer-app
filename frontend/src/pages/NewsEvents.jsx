@@ -5,6 +5,7 @@ import { useNewsEvents } from "../hooks/useNewsEvents";
 import { Container, PageHero, EmptyState, PlaceCardSkeleton, RATIO } from "../components/ui";
 import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
+import { FadeImg, reveal } from "../components/motion";
 
 const TABS = [
   { key: "all", label: "news.all" },
@@ -52,10 +53,10 @@ function EventCard({ item }) {
   return (
     <Link
       to={`/article/${item.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
       <div className={`relative ${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
-        {item.pic && <img src={item.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
+        {item.pic && <FadeImg src={item.pic} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />}
         <div className="absolute left-3 top-3">
           <DateBadge item={item} />
         </div>
@@ -91,7 +92,7 @@ function FeaturedEvent({ item }) {
       className="group relative isolate grid overflow-hidden rounded-3xl bg-gray-900 shadow-lift md:grid-cols-2"
     >
       <div className={`relative ${RATIO.banner} md:aspect-auto md:min-h-[360px]`}>
-        {item.pic && <img src={item.pic} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+        {item.pic && <FadeImg src={item.pic} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105" />}
       </div>
       <div className="flex flex-col justify-center p-6 text-white sm:p-10">
         <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -161,7 +162,7 @@ export default function NewsEvents() {
               role="tab"
               aria-selected={tab === tb.key}
               onClick={() => setTab(tb.key)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-full px-4 py-2 text-sm font-medium transition duration-200 active:scale-95 ${
                 tab === tb.key
                   ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
                   : "bg-white text-gray-700 ring-1 ring-gray-900/10 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:ring-white/10"
@@ -185,11 +186,15 @@ export default function NewsEvents() {
           </EmptyState>
         ) : (
           <>
-            <FeaturedEvent item={featured} />
+            <div key={tab} className="animate-zoom-in">
+              <FeaturedEvent item={featured} />
+            </div>
             {rest.length > 0 && (
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {rest.map((e) => (
-                  <EventCard key={e.id} item={e} />
+                {rest.map((e, i) => (
+                  <div key={e.id} {...reveal(i % 3, 90)}>
+                    <EventCard item={e} />
+                  </div>
                 ))}
               </div>
             )}

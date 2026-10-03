@@ -180,13 +180,16 @@ export default function Navbar() {
               >
                 <Heart size={19} />
                 {favorites.length > 0 && (
-                  <span className="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                  <span
+                    key={favorites.length}
+                    className="absolute right-1 top-1 grid h-4 min-w-[1rem] animate-heart-pop place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white"
+                  >
                     {favorites.length}
                   </span>
                 )}
               </button>
               {favOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] origin-top-right animate-pop overflow-hidden rounded-2xl bg-white shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                   <p className="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">
                     {t("nav.savedPlaces", { count: favorites.length })}
                   </p>
@@ -237,7 +240,7 @@ export default function Navbar() {
                 <ChevronDown size={16} className="text-gray-500" />
               </button>
               {userOpen && (
-                <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1.5 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+                <div className="absolute right-0 mt-2 w-56 origin-top-right animate-pop overflow-hidden rounded-2xl bg-white py-1.5 shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                   <div className="border-b border-gray-100 px-4 pb-2.5 pt-1.5 dark:border-gray-800">
                     <p className="truncate text-sm font-semibold">{user.display_name}</p>
                     <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
@@ -284,7 +287,7 @@ export default function Navbar() {
       </nav>
 
       {mobileOpen && (
-        <div className="h-[calc(100vh-4rem)] overflow-y-auto border-t border-gray-200 bg-white px-4 pb-8 pt-4 dark:border-gray-800 dark:bg-gray-950 lg:hidden">
+        <div className="h-[calc(100vh-4rem)] animate-slide-down overflow-y-auto border-t border-gray-200 bg-white px-4 pb-8 pt-4 dark:border-gray-800 dark:bg-gray-950 lg:hidden">
           {user && (
             <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gray-50 p-3 dark:bg-gray-900">
               <Avatar user={user} size={40} />

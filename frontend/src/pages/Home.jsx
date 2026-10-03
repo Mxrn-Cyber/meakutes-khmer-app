@@ -5,6 +5,7 @@ import { useDestinations } from "../hooks/useDestinations";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../i18n";
+import { CountUp, FadeImg, reveal } from "../components/motion";
 import {
   Container,
   SectionHeading,
@@ -39,30 +40,38 @@ function Hero({ placeCount, provinceCount, eventCount }) {
   return (
     <section className="relative isolate -mt-16 flex min-h-[640px] items-end overflow-hidden bg-gray-900 pb-16 pt-32 sm:min-h-[720px] sm:pb-24">
       {SLIDES.map((src, i) => (
-        <img
+        <div
           key={src}
-          src={src}
-          alt=""
-          className={`absolute inset-0 -z-20 h-full w-full object-cover transition-opacity duration-[1500ms] ${
+          className={`absolute inset-0 -z-20 overflow-hidden transition-opacity duration-[1500ms] ${
             i === slide ? "opacity-100" : "opacity-0"
           }`}
-        />
+        >
+          <img
+            key={i === slide ? `on-${slide}` : "off"}
+            src={src}
+            alt=""
+            className={`h-full w-full object-cover ${i === slide ? "animate-ken-burns" : ""}`}
+          />
+        </div>
       ))}
       <div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-950/90 via-gray-950/40 to-gray-950/30" />
 
       <Container>
         <div className="max-w-3xl">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white backdrop-blur">
+          <p className="mb-4 inline-flex animate-rise-in items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white backdrop-blur">
             <MapPin size={14} /> {t("home.kingdom")}
           </p>
-          <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-6xl">
+          <h1 className="animate-rise-in text-4xl font-extrabold leading-[1.1] tracking-tight text-white [animation-delay:100ms] sm:text-6xl">
             {t("home.titleA")}
             <span className="text-amber-300">{t("home.titleHighlight")}</span>
             {t("home.titleB")}
           </h1>
-          <p className="mt-3 text-lg text-white/90 sm:text-xl">{t("home.subtitle")}</p>
+          <p className="mt-3 animate-rise-in text-lg text-white/90 [animation-delay:200ms] sm:text-xl">{t("home.subtitle")}</p>
 
-          <form onSubmit={submit} className="mt-8 flex max-w-xl items-center gap-2 rounded-full bg-white p-1.5 shadow-lift">
+          <form
+            onSubmit={submit}
+            className="mt-8 flex max-w-xl animate-rise-in items-center gap-2 rounded-full bg-white p-1.5 shadow-lift ring-brand-300 transition [animation-delay:300ms] focus-within:ring-4"
+          >
             <Search size={20} className="ml-3 shrink-0 text-gray-400" />
             <input
               value={query}
@@ -76,14 +85,14 @@ function Hero({ placeCount, provinceCount, eventCount }) {
             </button>
           </form>
 
-          <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-white">
+          <dl className="mt-8 flex animate-rise-in flex-wrap gap-x-8 gap-y-3 text-white [animation-delay:400ms]">
             {[
               [placeCount, t("home.statPlaces")],
               [provinceCount, t("home.statProvinces")],
               [eventCount, t("home.statEvents")],
             ].map(([n, label]) => (
               <div key={label} className="flex items-baseline gap-2">
-                <dt className="text-2xl font-bold">{n ? num(n) : "–"}</dt>
+                <dt className="text-2xl font-bold tabular-nums">{n ? <CountUp value={n} /> : "–"}</dt>
                 <dd className="text-sm text-white/80">{label}</dd>
               </div>
             ))}
@@ -129,14 +138,15 @@ function ProvinceTiles({ places }) {
         <Link
           key={p.name}
           to={`/discover?province=${encodeURIComponent(p.name)}`}
+          {...reveal(i, 60, "zoom")}
           className={`group relative isolate overflow-hidden rounded-2xl bg-gray-900 ${
             i === 0 ? `col-span-2 ${RATIO.banner} lg:row-span-2 lg:aspect-auto` : RATIO.photo
           } ${i === 8 ? "hidden lg:block" : i === 7 ? "hidden sm:block" : ""}`}
         >
-          <img src={p.image} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-90" />
+          <img src={p.image} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 transition duration-700 ease-out group-hover:scale-110 group-hover:opacity-95" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="flex h-full flex-col justify-end p-4 text-white">
-            <p className={`font-bold ${i === 0 ? "text-2xl" : "text-base sm:text-lg"}`}>{tv(p.name)}</p>
+            <p className={`font-bold transition-transform duration-300 group-hover:-translate-y-0.5 ${i === 0 ? "text-2xl" : "text-base sm:text-lg"}`}>{tv(p.name)}</p>
             <p className="text-sm text-white/80">{t("common.places", { count: p.count })}</p>
           </div>
         </Link>
@@ -145,15 +155,16 @@ function ProvinceTiles({ places }) {
   );
 }
 
-function EventCard({ event }) {
+function EventCard({ event, index = 0 }) {
   const { pick, tv } = useLang();
   return (
     <Link
+      {...reveal(index)}
       to={`/article/${event.id}`}
-      className="group flex gap-4 rounded-2xl bg-white p-3 shadow-card ring-1 ring-gray-900/5 transition hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
+      className="group flex gap-4 rounded-2xl bg-white p-3 shadow-card ring-1 ring-gray-900/5 transition-shadow duration-300 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
       <div className={`relative w-32 shrink-0 self-start ${RATIO.photo} overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800`}>
-        {event.pic && <img src={event.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
+        {event.pic && <FadeImg src={event.pic} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />}
       </div>
       <div className="min-w-0 py-1">
         {event.date && (
@@ -198,7 +209,8 @@ export default function Home() {
           subtitle={t("home.topSubtitle")}
           action={<ViewAllLink to="/popular">{t("home.topAll")}</ViewAllLink>}
         />
-        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
+        {/* Revealed as one block: cards scrolled sideways on phones must not wait to appear. */}
+        <div data-reveal="" className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {(isLoading ? Array.from({ length: 4 }, (_, i) => ({ id: `s${i}` })) : topRated).map((trip) => (
             <div key={trip.id} className="w-[80%] shrink-0 snap-start sm:w-auto">
               {isLoading ? <PlaceCardSkeleton /> : <PlaceCard trip={trip} />}
@@ -227,8 +239,8 @@ export default function Home() {
             action={<ViewAllLink to="/news">{t("home.eventsAll")}</ViewAllLink>}
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {newsEvents.slice(0, 6).map((e) => (
-              <EventCard key={e.id} event={e} />
+            {newsEvents.slice(0, 6).map((e, i) => (
+              <EventCard key={e.id} event={e} index={i} />
             ))}
           </div>
         </Container>
@@ -240,8 +252,12 @@ export default function Home() {
             {t("home.features").map(({ title, text }, i) => {
               const Icon = FEATURE_ICONS[i];
               return (
-              <div key={title} className="rounded-2xl p-6 ring-1 ring-gray-900/5 dark:ring-white/10">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
+              <div
+                key={title}
+                {...reveal(i, 100)}
+                className="group rounded-2xl bg-white/60 p-6 ring-1 ring-gray-900/5 transition-shadow duration-300 hover:shadow-lift dark:bg-transparent dark:ring-white/10"
+              >
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 dark:bg-brand-900/30 dark:text-brand-300">
                   <Icon size={22} />
                 </div>
                 <h3 className="mt-4 font-semibold">{title}</h3>
@@ -255,14 +271,14 @@ export default function Home() {
 
       <Container className="py-16 sm:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-2">
-          <div className="relative">
+          <div className="relative" data-reveal="zoom">
             <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`} />
-            <div className="absolute -bottom-5 right-5 rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
+            <div className="absolute -bottom-5 right-5 animate-float-slow rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
               <p className="text-2xl font-bold text-brand-600">ITE G8</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{t("home.project")}</p>
             </div>
           </div>
-          <div>
+          <div {...reveal(1, 150)}>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">{t("home.storyEyebrow")}</p>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("home.storyTitle")}</h2>
             <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-400">
