@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import { Container, PageHero } from "../components/ui";
-import { buttonClass, RATIO } from "../components/styles";
+import { RATIO } from "../components/styles";
 import { useLang, Rich } from "../i18n";
 import { CountUp } from "../components/motion";
 import { reveal } from "../utils/motion";
@@ -270,7 +270,11 @@ export default function About() {
             {t("about.thanksKhmer")}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link to="/discover" className={`${buttonClass.secondary} !text-gray-900`}>
+            {/* Always white on the orange banner, in light and dark mode. */}
+            <Link
+              to="/discover"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm transition hover:-translate-y-px hover:bg-gray-50 hover:shadow-md active:translate-y-0 active:scale-[.98]"
+            >
               {t("about.start")}
             </Link>
             <Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/60 transition hover:bg-white/10">
