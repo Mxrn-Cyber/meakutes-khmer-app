@@ -67,7 +67,7 @@ const en = {
   footer: {
     blurb:
       "Discover temples, beaches, mountains and festivals across Cambodia, and share your own experience with other travellers.",
-    tagline: "ស្វែងរកភាពស្រស់ស្អាតនៃព្រះរាជាណាចក្រកម្ពុជា",
+    tagline: "Let's explore Cambodia together.",
     explore: "Explore",
     account: "Account",
     contact: "Contact",
@@ -80,7 +80,8 @@ const en = {
     profile: "My profile",
     terms: "Terms of use",
     privacy: "Privacy policy",
-    address: "#219A, Second Floor, Building A, Russian Federation Blvd, Teuk Laak 1, Toul Kork, Phnom Penh, Cambodia",
+    address:
+      "#219A, Second Floor, Building A, Russian Federation Blvd, Teuk Laak 1, Toul Kork, Phnom Penh, Cambodia",
     rights: "© {year} Meakutes-Khmer. All rights reserved.",
     designedBy: "Designed by",
   },
@@ -119,15 +120,25 @@ const en = {
     topAll: "See all popular places",
     provEyebrow: "Explore by province",
     provTitle: "Where do you want to go?",
-    provSubtitle: "From the temples of Siem Reap to the coast of Kep and the hills of Mondulkiri.",
+    provSubtitle:
+      "From the temples of Siem Reap to the coast of Kep and the hills of Mondulkiri.",
     provAll: "Browse all places",
     eventsEyebrow: "Festivals & events",
     eventsTitle: "What's happening in Cambodia",
     eventsAll: "All events",
     features: [
-      { title: "Honest reviews", text: "Read ratings and reviews from real visitors before you go." },
-      { title: "Maps & tips", text: "See each place on the map with the best time to visit and how to get in." },
-      { title: "Festivals", text: "Plan around Khmer New Year, the Water Festival, Pchum Ben and more." },
+      {
+        title: "Honest reviews",
+        text: "Read ratings and reviews from real visitors before you go.",
+      },
+      {
+        title: "Maps & tips",
+        text: "See each place on the map with the best time to visit and how to get in.",
+      },
+      {
+        title: "Festivals",
+        text: "Plan around Khmer New Year, the Water Festival, Pchum Ben and more.",
+      },
     ],
     project: "Final-year project",
     storyEyebrow: "Our story",
@@ -135,7 +146,7 @@ const en = {
     story1:
       "Cambodia boasts a variety of tourist attractions, from the awe-inspiring temples built by Khmer ancestors to modern resorts, mountain landscapes, diverse wildlife and some of the most beautiful beaches in Asia. The COVID-19 pandemic caused a significant decline in tourism, impacting local livelihoods.",
     story2:
-      "To address this, students of the Department of Information Technology Engineering (8th generation), under the guidance of our advisor, Mr. Ky Soklay, created Meakutes-Khmer to promote new and beautiful tourist sites across Cambodia for Cambodians and foreign visitors alike.",
+      "To address this, students of the Department of Information Technology Engineering (8th generation), under the guidance of our advisor, Ky Sok Lay, created Meakutes-Khmer to promote new and beautiful tourist sites across Cambodia for Cambodians and foreign visitors alike.",
     readStory: "Read our story",
     createAccount: "Create a free account",
   },
@@ -143,10 +154,12 @@ const en = {
   browse: {
     discoverEyebrow: "Discover Cambodia",
     discoverTitle: "Explore every corner of the kingdom",
-    discoverSubtitle: "Temples, islands, mountains, markets and more, across Cambodia's provinces.",
+    discoverSubtitle:
+      "Temples, islands, mountains, markets and more, across Cambodia's provinces.",
     popularEyebrow: "Popular places",
     popularTitle: "Cambodia's top-rated places",
-    popularSubtitle: "Ranked by the ratings and reviews of travellers like you.",
+    popularSubtitle:
+      "Ranked by the ratings and reviews of travellers like you.",
     searchPlaceholder: "Search by name, province or keyword",
     searchLabel: "Search places",
     clearSearch: "Clear search",
@@ -209,7 +222,8 @@ const en = {
   news: {
     eyebrow: "News & events",
     title: "Festivals and events in Cambodia",
-    subtitle: "Plan your trip around Khmer New Year, the Water Festival, Pchum Ben and other celebrations.",
+    subtitle:
+      "Plan your trip around Khmer New Year, the Water Festival, Pchum Ben and other celebrations.",
     all: "All",
     now: "Happening now",
     upcoming: "Upcoming",
@@ -253,7 +267,8 @@ const en = {
   auth: {
     sideTitle1: "Save the places you love.",
     sideTitle2: "Share your journey.",
-    sideText: "Rate places, write reviews, comment on events and keep a list of where you want to go next.",
+    sideText:
+      "Rate places, write reviews, comment on events and keep a list of where you want to go next.",
     sideKhmer: "សូមស្វាគមន៍! ស្វែងយល់ពីកម្ពុជាជាមួយយើង",
     or: "or",
     orEmail: "or with email",
@@ -268,7 +283,8 @@ const en = {
     passwordRequired: "Password is required",
     welcomeBack: "Welcome back!",
     loginTitle: "Welcome back",
-    loginSubtitle: "Log in to save places, write reviews and join the conversation.",
+    loginSubtitle:
+      "Log in to save places, write reviews and join the conversation.",
     newHere: "New to Meakutes-Khmer?",
     createAccount: "Create an account",
     loggingIn: "Logging in…",
@@ -319,10 +335,12 @@ const en = {
     lastName: "Last name",
     emailHint: "This is the address you log in with.",
     currentPassword: "Current password",
-    emailPwHint: "Needed to change your email. Google accounts can't change email here.",
+    emailPwHint:
+      "Needed to change your email. Google accounts can't change email here.",
     saveChanges: "Save changes",
     noSaved: "No saved places yet",
-    noSavedText: "Tap the heart on any place to keep it here for your next trip.",
+    noSavedText:
+      "Tap the heart on any place to keep it here for your next trip.",
     discover: "Discover places",
     changePassword: "Change password",
     changePasswordText:
@@ -354,7 +372,8 @@ const en = {
   about: {
     eyebrow: "About us",
     title: "Bringing Cambodia's beauty closer to every traveller",
-    subtitle: "Meakutes-Khmer is a tourism website built to promote and revitalise Cambodia's tourism industry.",
+    subtitle:
+      "Meakutes-Khmer is a tourism website built to promote and revitalise Cambodia's tourism industry.",
     statPlaces: "Places to visit",
     statProvinces: "Provinces",
     statReviews: "Traveller reviews",
@@ -363,29 +382,51 @@ const en = {
     avgB: " out of 5 on average",
     capstone: "Final-year capstone project, RUPP",
     story: "Our story",
-    storyP: [
-      "<b>Meakutes-Khmer</b> is an innovative tourism platform developed as a final-year capstone project by a graduating <b>Information Technology Engineering (ITE)</b> student at the <b>Royal University of Phnom Penh (RUPP)</b>, under the mentorship of <b>Mr. Ky Soklay</b>.",
-      "Born from a passion for technology and cultural preservation, the platform bridges modern engineering with national heritage. By translating four years of technical study into an accessible digital solution, Meakutes-Khmer delivers engaging travel insights designed to revitalize Cambodia’s tourism sector.",
-      "Whether guiding local explorers or welcoming international adventurers, Meakutes-Khmer invites travelers to discover the Kingdom of Wonder through an intuitive digital experience.",
-      "Sincere gratitude to <b>Mr. Ky Soklay</b> for his dedicated mentorship, strategic guidance, and continuous encouragement throughout this project.",
-    ],
+    storyP: [""],
     teamPhoto: "The Meakutes-Khmer team",
     howEyebrow: "How it works",
     howTitle: "Plan your trip in three steps",
     step: "Step {n}",
     steps: [
-      { title: "Find a place", text: "Search by name or province, or browse the most popular places.", cta: "Discover places" },
-      { title: "Save and visit", text: "Look at photos and the map, then tap the heart to keep it for your trip.", cta: "See popular places" },
-      { title: "Rate and review", text: "Share your rating and tips to help the next traveller choose.", cta: "Create a free account" },
+      {
+        title: "Find a place",
+        text: "Search by name or province, or browse the most popular places.",
+        cta: "Discover places",
+      },
+      {
+        title: "Save and visit",
+        text: "Look at photos and the map, then tap the heart to keep it for your trip.",
+        cta: "See popular places",
+      },
+      {
+        title: "Rate and review",
+        text: "Share your rating and tips to help the next traveller choose.",
+        cta: "Create a free account",
+      },
     ],
     findTitle: "What you'll find here",
     offers: [
-      { title: "Destination guides", text: "Places across the provinces of Cambodia, with maps and practical tips." },
-      { title: "Real experiences", text: "Stories, reviews and comments shared by travellers." },
-      { title: "Ratings", text: "Recommendations to help you choose your next adventure." },
+      {
+        title: "Destination guides",
+        text: "Places across the provinces of Cambodia, with maps and practical tips.",
+      },
+      {
+        title: "Real experiences",
+        text: "Stories, reviews and comments shared by travellers.",
+      },
+      {
+        title: "Ratings",
+        text: "Recommendations to help you choose your next adventure.",
+      },
       { title: "Photos", text: "See each place before you go." },
-      { title: "Search and filters", text: "Find places by name, province or popularity." },
-      { title: "Favourites", text: "Save the places you love and find them again in your profile." },
+      {
+        title: "Search and filters",
+        text: "Find places by name, province or popularity.",
+      },
+      {
+        title: "Favourites",
+        text: "Save the places you love and find them again in your profile.",
+      },
     ],
     teamTitle: "Our team",
     teamSubtitle: "The people behind Meakutes-Khmer.",
@@ -393,7 +434,7 @@ const en = {
       {
         name: "Ky Soklay",
         role: "Project advisor",
-        title: "Royal University of Phnom Penh",
+        title: "Doctor, Royal University of Phnom Penh",
         bio: "Guided the vision of Meakutes-Khmer and mentored the project from idea to launch.",
       },
       {
@@ -405,7 +446,7 @@ const en = {
     ],
     onSite: "{name} on {site}",
     thanks: "Thank you for visiting. Let's explore Cambodia together.",
-    thanksKhmer: "សូមអរគុណ! តោះទៅស្វែងយល់ពីកម្ពុជាជាមួយគ្នា",
+    thanksKhmer: "Let's explore Cambodia together.",
     start: "Start exploring",
     join: "Join for free",
   },
@@ -418,7 +459,8 @@ const en = {
 
   terms: {
     title: "Terms of use",
-    intro: "By using Meakutes-Khmer you agree to these simple rules. They keep the site useful and friendly for everyone.",
+    intro:
+      "By using Meakutes-Khmer you agree to these simple rules. They keep the site useful and friendly for everyone.",
     sections: [
       {
         title: "Your account",
@@ -453,14 +495,20 @@ const en = {
           "Photos and text created by Meakutes-Khmer may not be copied for commercial use without permission.",
         ],
       },
-      { title: "Changes", body: ["We may update these terms. The date at the top of this page shows when they last changed."] },
+      {
+        title: "Changes",
+        body: [
+          "We may update these terms. The date at the top of this page shows when they last changed.",
+        ],
+      },
       { title: "Contact", body: ["Questions? Email {email}."] },
     ],
   },
 
   privacy: {
     title: "Privacy policy",
-    intro: "This page explains what Meakutes-Khmer stores about you, why, and how to have it removed.",
+    intro:
+      "This page explains what Meakutes-Khmer stores about you, why, and how to have it removed.",
     sections: [
       {
         title: "What we store",
@@ -486,7 +534,7 @@ const en = {
         body: [
           "We use one cookie, named mk_session, to keep you logged in. It is removed when you log out or when your session expires. We do not use advertising or tracking cookies.",
           "Your choice of language and of light or dark mode is saved in your own browser.",
-          "If you choose a language marked \"Machine translation by Google\", the page text is translated by Google Translate, and Google sets a cookie named googtrans to remember the language. Nothing is sent to Google while you use English or Khmer.",
+          'If you choose a language marked "Machine translation by Google", the page text is translated by Google Translate, and Google sets a cookie named googtrans to remember the language. Nothing is sent to Google while you use English or Khmer.',
         ],
       },
       {
@@ -510,18 +558,6 @@ const en = {
       },
       { title: "Contact", body: ["Questions about your data? Email {email}."] },
     ],
-  },
-
-  crop: {
-    close: "Close",
-    zoom: "Zoom",
-    rotate: "Rotate",
-    shape: "Shape",
-    size: "Saved size: {w} × {h} px",
-    small: "smaller than the recommended {w} × {h}, it may look blurry",
-    avatarTitle: "Crop your profile photo",
-    avatarDone: "Use this photo",
-    asIs: "Use as is",
   },
 
   notFound: {
