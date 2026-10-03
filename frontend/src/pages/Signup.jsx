@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
-import { buttonClass, inputClass } from "../components/ui";
+import { buttonClass, inputClass } from "../components/styles";
 import { useLang } from "../i18n";
-import { useSiteImage } from "../siteImages";
+import { useSiteImage } from "../useSiteImages";
 
 const RULES = [
   { test: (p) => p.length >= 8, label: "auth.rule8" },

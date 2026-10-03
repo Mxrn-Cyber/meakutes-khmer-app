@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, Trash2, Copy, Ruler, ChevronDown, Crop } from "lucide-react";
 import { api } from "../api/client";
-import { useConfirm, useToast } from "../components/Feedback";
-import { useAuth } from "../context/AuthContext";
-import { RATIO } from "../components/ui";
-import ImageCropper, { cropFileToBlob, blobToFile } from "../components/ImageCropper";
+import { useConfirm, useToast } from "../components/useFeedback";
+import { useAuth } from "../context/useAuth";
+import { RATIO } from "../components/styles";
+import ImageCropper from "../components/ImageCropper";
+import { cropFileToBlob, blobToFile } from "../components/imageCrop";
 
 const roundCrop = (p) => ({ x: Math.round(p.x), y: Math.round(p.y), width: Math.round(p.width), height: Math.round(p.height) });
 
@@ -108,7 +109,6 @@ const AdminMedia = () => {
   const toast = useToast();
   const { isAdmin } = useAuth();
   const [media, setMedia] = useState(null);
-  const [error, setError] = useState("");
   const [sizes, setSizes] = useState({});
   const [queue, setQueue] = useState([]); // new files waiting for crop
   const [queueUrl, setQueueUrl] = useState(null);
@@ -214,11 +214,6 @@ const AdminMedia = () => {
         </label>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-xl px-4 py-3 text-sm bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:ring-rose-900">
-          {error}
-        </div>
-      )}
 
       <PhotoGuide />
 

@@ -3,28 +3,18 @@
 // This used to keep favorites/ratings in localStorage and sessionStorage.
 // It now talks to the backend, so favorites follow the logged-in user
 // across devices instead of living in one browser. The exported names
-// (TripProvider, useTripContext) are unchanged so nothing importing them
+// (TripProvider, and useTripContext in ./useTrip.js) are unchanged so nothing importing them
 // needs to change.
 import {
-  createContext,
-  useContext,
   useState,
   useEffect,
   useCallback,
 } from "react";
 
 import { api } from "../api/client";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
+import { TripContext } from "./useTrip";
 
-const TripContext = createContext();
-
-export const useTripContext = () => {
-  const context = useContext(TripContext);
-  if (!context) {
-    throw new Error("useTripContext must be used within a TripProvider");
-  }
-  return context;
-};
 
 export const TripProvider = ({ children }) => {
   const { user } = useAuth();

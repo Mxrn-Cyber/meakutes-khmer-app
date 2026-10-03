@@ -1,16 +1,10 @@
 // Replaces Firebase Auth's onAuthStateChanged/signOut with the backend's
 // cookie-based session. Wrap the app in <AuthProvider> once (see App.jsx)
 // and read/act on the current user anywhere with useAuth().
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { AuthContext } from "./useAuth";
 import { api } from "../api/client";
 
-const AuthContext = createContext(null);
-
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
-  return ctx;
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

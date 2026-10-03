@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FeedbackContext } from "./useFeedback";
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { useLang } from "../i18n";
 
@@ -6,7 +7,6 @@ import { useLang } from "../i18n";
 //   const confirm = useConfirm();  if (!(await confirm({ title, message, danger: true }))) return;
 //   const toast = useToast();      toast.error("Could not save"); toast.success("Saved");
 
-const FeedbackContext = createContext(null);
 
 export function FeedbackProvider({ children }) {
   const { t } = useLang();
@@ -136,12 +136,4 @@ function Toast({ type, message, onClose }) {
       </button>
     </div>
   );
-}
-
-export function useConfirm() {
-  return useContext(FeedbackContext).confirm;
-}
-
-export function useToast() {
-  return useContext(FeedbackContext).toast;
 }

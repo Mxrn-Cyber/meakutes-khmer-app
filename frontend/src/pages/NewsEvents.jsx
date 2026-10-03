@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, CalendarDays, CalendarX2, ArrowRight } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
-import { Container, PageHero, EmptyState, PlaceCardSkeleton, RATIO } from "../components/ui";
+import { Container, PageHero, EmptyState, PlaceCardSkeleton } from "../components/ui";
+import { RATIO } from "../components/styles";
 import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
-import { FadeImg, reveal } from "../components/motion";
-import { useSiteImage } from "../siteImages";
+import { FadeImg } from "../components/motion";
+import { reveal } from "../utils/motion";
+import { useSiteImage } from "../useSiteImages";
 
 const TABS = [
   { key: "all", label: "news.all" },

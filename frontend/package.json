@@ -9,7 +9,8 @@
     "build:analyze": "vite build && npx vite-bundle-analyzer dist/stats.html",
     "deploy": "wrangler deploy --assets=./dist",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.19.1",

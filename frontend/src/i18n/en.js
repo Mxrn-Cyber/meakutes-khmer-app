@@ -269,7 +269,7 @@ const en = {
     sideTitle2: "Share your journey.",
     sideText:
       "Rate places, write reviews, comment on events and keep a list of where you want to go next.",
-    sideKhmer: "សូមស្វាគមន៍! ស្វែងយល់ពីកម្ពុជាជាមួយយើង",
+    sideKhmer: "Let's explore Cambodia together.",
     or: "or",
     orEmail: "or with email",
     googleMissing: "Google sign-in is not set up (VITE_GOOGLE_CLIENT_ID).",
@@ -382,7 +382,12 @@ const en = {
     avgB: " out of 5 on average",
     capstone: "Final-year capstone project, RUPP",
     story: "Our story",
-    storyP: [""],
+    storyP: [
+      "<b>Meakutes-Khmer</b> is an innovative tourism platform developed as a final-year capstone project by a graduating <b>Information Technology Engineering (ITE)</b> student at the <b>Royal University of Phnom Penh (RUPP)</b>, under the mentorship of <b>Mr. Ky Soklay</b>.",
+      "Born from a passion for technology and cultural preservation, the platform bridges modern engineering with national heritage. By translating four years of technical study into an accessible digital solution, Meakutes-Khmer delivers engaging travel insights designed to revitalize Cambodia’s tourism sector.",
+      "Whether guiding local explorers or welcoming international adventurers, Meakutes-Khmer invites travelers to discover the Kingdom of Wonder through an intuitive digital experience.",
+      "Sincere gratitude to <b>Mr. Ky Soklay</b> for his dedicated mentorship, strategic guidance, and continuous encouragement throughout this project.",
+    ],
     teamPhoto: "The Meakutes-Khmer team",
     howEyebrow: "How it works",
     howTitle: "Plan your trip in three steps",
@@ -558,6 +563,18 @@ const en = {
       },
       { title: "Contact", body: ["Questions about your data? Email {email}."] },
     ],
+  },
+
+  crop: {
+    close: "Close",
+    zoom: "Zoom",
+    rotate: "Rotate",
+    shape: "Shape",
+    size: "Saved size: {w} × {h} px",
+    small: "smaller than the recommended {w} × {h}, it may look blurry",
+    avatarTitle: "Crop your profile photo",
+    avatarDone: "Use this photo",
+    asIs: "Use as is",
   },
 
   notFound: {

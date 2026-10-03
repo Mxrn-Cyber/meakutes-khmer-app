@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { api } from "../api/client";
-import { useConfirm, useToast } from "../components/Feedback";
-import { useAuth } from "../context/AuthContext";
+import { useConfirm, useToast } from "../components/useFeedback";
+import { useAuth } from "../context/useAuth";
 
 function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete }) {
   const confirm = useConfirm();

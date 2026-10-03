@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import Loading from "./Loading.jsx";
 
 // Gates everything under /admin/*. Requires the "admin" or "editor" role,

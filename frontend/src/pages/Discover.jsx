@@ -1,6 +1,6 @@
 import PlacesBrowser from "../components/PlacesBrowser";
 import { useLang } from "../i18n";
-import { useSiteImage } from "../siteImages";
+import { useSiteImage } from "../useSiteImages";
 
 export default function Discover() {
   const { t } = useLang();

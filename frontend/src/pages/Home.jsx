@@ -3,19 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, MapPin, CalendarDays, Star, Map as MapIcon, PartyPopper, ArrowRight } from "lucide-react";
 import { useDestinations } from "../hooks/useDestinations";
 import { useNewsEvents } from "../hooks/useNewsEvents";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useLang } from "../i18n";
-import { CountUp, FadeImg, reveal } from "../components/motion";
-import { useSiteImage } from "../siteImages";
-import {
-  Container,
-  SectionHeading,
-  ViewAllLink,
-  PlaceCard,
-  PlaceCardSkeleton,
-  buttonClass,
-  RATIO,
-} from "../components/ui";
+import { CountUp, FadeImg } from "../components/motion";
+import { reveal } from "../utils/motion";
+import { useSiteImage } from "../useSiteImages";
+import { Container, SectionHeading, ViewAllLink, PlaceCard, PlaceCardSkeleton } from "../components/ui";
+import { buttonClass, RATIO } from "../components/styles";
 
 // Photos and captions can be changed in Admin > Site photos (defaults: siteImages.jsx).
 const SLIDE_KEYS = ["home_slide_1", "home_slide_2", "home_slide_3", "home_slide_4", "home_slide_5"];

@@ -16,10 +16,12 @@ import {
   Mail,
 } from "lucide-react";
 import { api } from "../api/client";
-import { Container, PageHero, buttonClass, RATIO } from "../components/ui";
+import { Container, PageHero } from "../components/ui";
+import { buttonClass, RATIO } from "../components/styles";
 import { useLang, Rich } from "../i18n";
-import { CountUp, reveal } from "../components/motion";
-import { useSiteImage } from "../siteImages";
+import { CountUp } from "../components/motion";
+import { reveal } from "../utils/motion";
+import { useSiteImage } from "../useSiteImages";
 
 const STEPS = [
   { Icon: Search, to: "/discover" },

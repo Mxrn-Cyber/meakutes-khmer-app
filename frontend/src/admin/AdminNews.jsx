@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Image as ImageIcon } from "lucide-react";
 import { api } from "../api/client";
-import { useConfirm, useToast } from "../components/Feedback";
+import { useConfirm, useToast } from "../components/useFeedback";
 
 const STATUS_OPTIONS = ["draft", "published"];
 

@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, X, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDestinations } from "../hooks/useDestinations";
-import { Container, PageHero, PlaceCard, PlaceCardSkeleton, EmptyState, buttonClass } from "./ui";
+import { Container, PageHero, PlaceCard, PlaceCardSkeleton, EmptyState } from "./ui";
+import { buttonClass } from "./styles";
 import { useLang } from "../i18n";
-import { reveal } from "./motion";
+import { reveal } from "../utils/motion";
 
 const PER_PAGE = 12;
 const ACCESS_ORDER = { Easy: 1, Moderate: 2, Challenging: 3 };

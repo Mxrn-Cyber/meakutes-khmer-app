@@ -12,8 +12,8 @@ import {
   ChevronDown,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useTripContext } from "../context/TripContext";
+import { useAuth } from "../context/useAuth";
+import { useTripContext } from "../context/useTrip";
 import { api } from "../api/client";
 import { useLang } from "../i18n";
 import LanguageMenu from "./LanguageMenu";

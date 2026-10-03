@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Star, Flag, CheckCircle, Trash2 } from "lucide-react";
 import { api } from "../api/client";
-import { useConfirm, useToast } from "../components/Feedback";
+import { useConfirm, useToast } from "../components/useFeedback";
 
 const STATUS_FILTERS = ["all", "published", "flagged", "removed"];
 

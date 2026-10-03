@@ -20,12 +20,14 @@ import {
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useGoogleMaps, embedUrl } from "../utils/googleMaps";
 import { useDestination, useDestinations } from "../hooks/useDestinations";
-import { useTripContext } from "../context/TripContext";
-import { useAuth } from "../context/AuthContext";
+import { useTripContext } from "../context/useTrip";
+import { useAuth } from "../context/useAuth";
 import { api } from "../api/client";
-import { Container, PlaceCard, Stars, RatingPill, buttonClass, RATIO } from "../components/ui";
+import { Container, PlaceCard, Stars, RatingPill } from "../components/ui";
+import { buttonClass, RATIO } from "../components/styles";
 import { useLang } from "../i18n";
-import { FadeImg, reveal } from "../components/motion";
+import { FadeImg } from "../components/motion";
+import { reveal } from "../utils/motion";
 
 const mapOptions = { zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true };
 

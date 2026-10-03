@@ -3,10 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, Clock, Accessibility, CalendarPlus, Download, Share2, Check } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import CommentsPanel from "../components/CommentsPanel";
-import { Container, buttonClass, RATIO } from "../components/ui";
+import { Container } from "../components/ui";
+import { buttonClass, RATIO } from "../components/styles";
 import { eventStatus, daysUntil, googleCalendarUrl, downloadIcs, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
-import { FadeImg, reveal } from "../components/motion";
+import { FadeImg } from "../components/motion";
+import { reveal } from "../utils/motion";
 
 function Fact({ icon: Icon, label, value }) {
   if (!value) return null;

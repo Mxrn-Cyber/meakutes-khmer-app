@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { api } from "../api/client";
-import { useConfirm, useToast } from "../components/Feedback";
-import { useAuth } from "../context/AuthContext";
+import { useConfirm, useToast } from "../components/useFeedback";
+import { useAuth } from "../context/useAuth";
 
 const ALL_ROLES = ["admin", "editor", "user"];
 

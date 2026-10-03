@@ -3,14 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Camera, Heart, Lock, Mail, Phone, User, Eye, EyeOff, ShieldCheck, Pencil } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useTripContext } from "../context/TripContext";
+import { useAuth } from "../context/useAuth";
+import { useTripContext } from "../context/useTrip";
 import { mapDestination } from "../hooks/useDestinations";
 import { api } from "../api/client";
-import { Container, PlaceCard, EmptyState, buttonClass, inputClass } from "../components/ui";
+import { Container, PlaceCard, EmptyState } from "../components/ui";
+import { buttonClass, inputClass } from "../components/styles";
 import { Alert, Field } from "../components/AuthLayout";
 import { useLang } from "../i18n";
-import ImageCropper, { cropFileToBlob, blobToFile } from "../components/ImageCropper";
+import ImageCropper from "../components/ImageCropper";
+import { cropFileToBlob, blobToFile } from "../components/imageCrop";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 const TABS = [
@@ -108,7 +110,7 @@ export default function Profile() {
     setCropSrc({ file, url: URL.createObjectURL(file) });
   };
 
-  const usePhoto = (file) => {
+  const applyPhoto = (file) => {
     URL.revokeObjectURL(cropSrc.url);
     setCropSrc(null);
     // Checked after cropping: a big phone photo usually shrinks well under the limit.
@@ -120,9 +122,9 @@ export default function Profile() {
   const finishCrop = async ({ pixels, rotation }) => {
     try {
       const blob = await cropFileToBlob(cropSrc.file, pixels, rotation, 800);
-      usePhoto(blobToFile(blob, cropSrc.file.name));
+      applyPhoto(blobToFile(blob, cropSrc.file.name));
     } catch {
-      usePhoto(cropSrc.file);
+      applyPhoto(cropSrc.file);
     }
   };
 
@@ -390,7 +392,7 @@ export default function Profile() {
           aspect={1}
           lockAspect
           doneLabel={t("crop.avatarDone")}
-          extraAction={{ label: t("crop.asIs"), onClick: () => usePhoto(cropSrc.file) }}
+          extraAction={{ label: t("crop.asIs"), onClick: () => applyPhoto(cropSrc.file) }}
           onCancel={() => {
             URL.revokeObjectURL(cropSrc.url);
             setCropSrc(null);
