@@ -35,6 +35,11 @@ alembic upgrade head          # creates all 17 tables
 uvicorn app.main:app --reload # http://localhost:8000
 ```
 
+script : cd ~/Desktop/meakutes-khmer-app/backend
+source venv/bin/activate
+alembic upgrade head
+uvicorn app.main:app --reload
+
 API docs (interactive): http://localhost:8000/docs
 
 To load the original 20 destinations and 6 news items into the database, along
@@ -57,11 +62,11 @@ npm run dev                   # http://localhost:5173
 
 The frontend reads these from `frontend/.env`:
 
-| Variable | What it's for |
-| --- | --- |
-| `VITE_API_BASE_URL` | Where the backend is. `http://localhost:8000` in development. |
-| `VITE_GOOGLE_CLIENT_ID` | Google Sign-In. Must match `GOOGLE_CLIENT_ID` in `backend/.env`. |
-| `VITE_GOOGLE_MAPS_API_KEY` | Maps on the destination detail page. |
+| Variable                   | What it's for                                                    |
+| -------------------------- | ---------------------------------------------------------------- |
+| `VITE_API_BASE_URL`        | Where the backend is. `http://localhost:8000` in development.    |
+| `VITE_GOOGLE_CLIENT_ID`    | Google Sign-In. Must match `GOOGLE_CLIENT_ID` in `backend/.env`. |
+| `VITE_GOOGLE_MAPS_API_KEY` | Maps on the destination detail page.                             |
 
 ## Testing it
 
