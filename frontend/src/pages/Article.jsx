@@ -30,8 +30,8 @@ export default function Article() {
   const { newsEvents, isLoading } = useNewsEvents();
   const { t, pick, tv, locale } = useLang();
   const [copied, setCopied] = useState(false);
-  const item = useMemo(() => newsEvents.find((e) => String(e.id) === String(id)), [newsEvents, id]);
-  const related = useMemo(() => newsEvents.filter((e) => String(e.id) !== String(id)).slice(0, 3), [newsEvents, id]);
+  const item = useMemo(() => newsEvents.find((e) => e.slug === id || String(e.id) === String(id)), [newsEvents, id]);
+  const related = useMemo(() => newsEvents.filter((e) => e !== item).slice(0, 3), [newsEvents, item]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -177,7 +177,7 @@ export default function Article() {
                 <Link
                   key={e.id}
                   {...reveal(i, 90, "fade")}
-                  to={`/article/${e.id}`}
+                  to={`/article/${e.slug || e.id}`}
                   className="group overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
                 >
                   <div className={`${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>

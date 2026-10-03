@@ -132,6 +132,11 @@ export default function Login() {
             </button>
           </div>
         </Field>
+        <div className="-mt-2 flex justify-end">
+          <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+            {t("account.forgotLink")}
+          </Link>
+        </div>
         <button type="submit" disabled={loading} className={`${buttonClass.primary} w-full py-3`}>
           {loading ? t("auth.loggingIn") : t("auth.login")}
         </button>

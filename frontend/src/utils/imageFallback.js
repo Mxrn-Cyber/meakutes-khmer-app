@@ -1,6 +1,6 @@
 // When any <img> on the site fails to load, show a neutral placeholder
 // instead of the browser's broken-image icon and alt text.
-const PLACEHOLDER =
+export const PLACEHOLDER =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +

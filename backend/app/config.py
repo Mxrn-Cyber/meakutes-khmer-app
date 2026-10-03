@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     r2_bucket: str = ""
     r2_public_url: str = ""
 
+    # Account emails (verify address, reset password). Leave SMTP_HOST empty to only log links.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    # Where the website lives; used to build links in emails.
+    frontend_url: str = "http://localhost:5173"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("database_url")

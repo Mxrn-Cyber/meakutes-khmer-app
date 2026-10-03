@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.ratelimit import limit
 from app.models.destination import Destination
 from app.models.news import NewsEvent
 from app.models.review import Comment
 from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentOut
-from app.security import get_current_user
+from app.security import get_current_user, get_verified_user
 
 router = APIRouter(prefix="/api/comments", tags=["comments"])
 
@@ -39,11 +40,11 @@ def list_comments(
     return [_to_out(db, c) for c in query.order_by(Comment.created_at.asc()).limit(500).all()]
 
 
-@router.post("", response_model=CommentOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CommentOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(limit("comments", 30, 3600))])
 def create_comment(
     payload: CommentCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_verified_user),
 ):
     if payload.news_event_id is not None:
         target = db.get(NewsEvent, payload.news_event_id)

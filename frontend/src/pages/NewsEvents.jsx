@@ -55,7 +55,7 @@ function EventCard({ item }) {
   const description = pick(item, "description");
   return (
     <Link
-      to={`/article/${item.id}`}
+      to={`/article/${item.slug || item.id}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
       <div className={`relative ${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
@@ -91,7 +91,7 @@ function FeaturedEvent({ item }) {
   const description = pick(item, "description");
   return (
     <Link
-      to={`/article/${item.id}`}
+      to={`/article/${item.slug || item.id}`}
       className="group relative isolate grid overflow-hidden rounded-3xl bg-gray-900 shadow-lift md:grid-cols-2"
     >
       <div className={`relative ${RATIO.banner} md:aspect-auto md:min-h-[360px]`}>

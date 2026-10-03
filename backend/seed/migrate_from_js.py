@@ -7,9 +7,9 @@ Step 1 (Node, once per file) turns the JS module into JSON:
 
 Step 2 (this script) loads the JSON into the database defined by DATABASE_URL / .env:
     python seed/migrate_from_js.py --trips seed/tripsData.json --news seed/newsEvents.json \
-        --images-dir path/to/frontend/public
+        --images-dir seed/images
 
---images-dir should point at the old frontend's `public/` folder (or wherever
+--images-dir should point at seed/images (WebP copies of the original photos, or wherever
 `/Trip-Image/...` and the news `pic` files actually live on disk) so referenced
 images get copied into MEDIA_ROOT and registered as `media` rows. Omit it to
 skip image migration and link destinations/news with no images.
@@ -132,7 +132,7 @@ def main() -> None:
     parser.add_argument("--trips", type=Path, help="Path to tripsData.json")
     parser.add_argument("--news", type=Path, help="Path to newsEvents.json")
     parser.add_argument(
-        "--images-dir", type=Path, default=None, help="Old frontend's public/ folder"
+        "--images-dir", type=Path, default=None, help="Folder with the photos (seed/images)"
     )
     args = parser.parse_args()
 

@@ -42,3 +42,16 @@ services:
         sync: false
       - key: R2_PUBLIC_URL
         sync: false
+      # Account emails (confirm address, reset password)
+      - key: FRONTEND_URL
+        value: https://meakutes-khmer.laothomorn.workers.dev
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false

@@ -17,6 +17,6 @@ alembic upgrade head
 python seed/migrate_from_js.py \
   --trips seed/tripsData.json \
   --news seed/newsEvents.json \
-  --images-dir ../frontend/public
+  --images-dir seed/images
 echo
 echo "Done."

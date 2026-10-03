@@ -1,19 +1,24 @@
 import datetime
+import secrets
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from sqlalchemy.orm import Session
 
-from app import storage
+from app import mailer, storage
 from app.config import get_settings
 from app.database import get_db
 from app.models.media import Media
-from app.models.user import OAuthAccount, Role, User
+from app.models.user import OAuthAccount, Role, User, UserToken
+from app.ratelimit import client_ip, hit, limit
 from app.schemas.auth import (
     ChangePasswordRequest,
+    EmailRequest,
+    ResetPasswordRequest,
+    TokenRequest,
     GoogleLoginRequest,
     LoginRequest,
     RegisterRequest,
@@ -53,8 +58,58 @@ def _default_role(db: Session) -> Role | None:
     return db.query(Role).filter(Role.name == "user").first()
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(payload: RegisterRequest, response: Response, db: Session = Depends(get_db)):
+VERIFY_HOURS = 48
+RESET_HOURS = 1
+
+
+def _new_link(db: Session, user: User, purpose: str, hours: int, page: str) -> str:
+    """Create a one-time token and return the website link that carries it."""
+    # Older unused links of the same kind stop working.
+    db.query(UserToken).filter(
+        UserToken.user_id == user.id, UserToken.purpose == purpose, UserToken.used_at.is_(None)
+    ).delete(synchronize_session=False)
+    raw = secrets.token_urlsafe(32)
+    db.add(
+        UserToken(
+            user_id=user.id,
+            purpose=purpose,
+            token_hash=_hash_token(raw),
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=hours),
+        )
+    )
+    db.commit()
+    return f"{settings.frontend_url.rstrip('/')}/{page}?token={raw}"
+
+
+def _use_token(db: Session, raw: str, purpose: str) -> UserToken:
+    row = (
+        db.query(UserToken)
+        .filter(UserToken.token_hash == _hash_token(raw), UserToken.purpose == purpose)
+        .first()
+    )
+    if not row or row.used_at or row.expires_at < datetime.datetime.utcnow():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "This link is invalid or has expired")
+    row.used_at = datetime.datetime.utcnow()
+    return row
+
+
+def _send_verification(db: Session, user: User, background: BackgroundTasks) -> None:
+    link = _new_link(db, user, "verify", VERIFY_HOURS, "verify-email")
+    background.add_task(mailer.send_verification, user.email, link)
+
+
+@router.post(
+    "/register",
+    response_model=UserOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(limit("register", 5, 3600))],
+)
+def register(
+    payload: RegisterRequest,
+    response: Response,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status.HTTP_409_CONFLICT, "An account with this email already exists")
 
@@ -64,6 +119,8 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         first_name=payload.first_name,
         last_name=payload.last_name,
         display_name=f"{payload.first_name} {payload.last_name}".strip(),
+        # Without email set up there is no way to confirm, so trust the address.
+        email_verified=not mailer.is_configured(),
     )
     role = _default_role(db)
     if role:
@@ -71,6 +128,8 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
     db.add(user)
     db.commit()
     db.refresh(user)
+    if not user.email_verified:
+        _send_verification(db, user, background)
 
     token = create_session(db, user)
     _set_session_cookie(response, token)
@@ -78,7 +137,15 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
 
 
 @router.post("/login", response_model=UserOut)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def login(
+    payload: LoginRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    # 10 tries per 5 minutes from one IP, and 10 per 15 minutes against one account.
+    hit(f"login-ip:{client_ip(request)}", 10, 300)
+    hit(f"login-email:{payload.email.lower()}", 10, 900)
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
@@ -90,7 +157,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     return UserOut.from_user(user)
 
 
-@router.post("/google", response_model=UserOut)
+@router.post("/google", response_model=UserOut, dependencies=[Depends(limit("google", 20, 300))])
 def google_login(payload: GoogleLoginRequest, response: Response, db: Session = Depends(get_db)):
     if not settings.google_client_id:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Google login is not configured")
@@ -121,6 +188,7 @@ def google_login(payload: GoogleLoginRequest, response: Response, db: Session = 
         if not user:
             user = User(
                 email=email,
+                email_verified=True,  # Google already checked this address
                 display_name=claims.get("name"),
                 first_name=claims.get("given_name"),
                 last_name=claims.get("family_name"),
@@ -130,6 +198,7 @@ def google_login(payload: GoogleLoginRequest, response: Response, db: Session = 
                 user.roles.append(role)
             db.add(user)
             db.flush()
+        user.email_verified = True
         db.add(OAuthAccount(user_id=user.id, provider="google", provider_user_id=google_sub, email=email))
         db.commit()
         db.refresh(user)
@@ -163,6 +232,7 @@ def me(user: User = Depends(get_current_user)):
 @router.patch("/me", response_model=UserOut)
 def update_me(
     payload: UpdateProfileRequest,
+    background: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -190,6 +260,10 @@ def update_me(
         if db.query(User).filter(User.email == new_email, User.id != user.id).first():
             raise HTTPException(status.HTTP_409_CONFLICT, "That email is already in use")
         user.email = new_email
+        if mailer.is_configured():
+            user.email_verified = False
+            db.commit()
+            _send_verification(db, user, background)
 
     db.commit()
     db.refresh(user)
@@ -271,3 +345,63 @@ async def upload_avatar(
 
     db.refresh(user)
     return UserOut.from_user(user)
+
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(limit("forgot", 5, 3600))],
+)
+def forgot_password(payload: EmailRequest, background: BackgroundTasks, db: Session = Depends(get_db)):
+    """Always answers the same way, so nobody can test which emails have accounts."""
+    email = payload.email.lower()
+    hit(f"forgot-email:{email}", 3, 3600)
+    user = db.query(User).filter(User.email == email).first()
+    if user and user.is_active:
+        link = _new_link(db, user, "reset", RESET_HOURS, "reset-password")
+        background.add_task(mailer.send_password_reset, user.email, link)
+
+
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(limit("reset", 10, 3600))],
+)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    row = _use_token(db, payload.token, "reset")
+    user = db.get(User, row.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "This link is invalid or has expired")
+    user.password_hash = hash_password(payload.password)
+    user.email_verified = True  # they opened the email, so the address works
+    # Sign out everywhere; the person signs in again with the new password.
+    db.query(SessionModel).filter(SessionModel.user_id == user.id).delete(synchronize_session=False)
+    db.commit()
+
+
+@router.post("/verify-email", response_model=UserOut, dependencies=[Depends(limit("verify", 20, 3600))])
+def verify_email(payload: TokenRequest, db: Session = Depends(get_db)):
+    row = _use_token(db, payload.token, "verify")
+    user = db.get(User, row.user_id)
+    if not user:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "This link is invalid or has expired")
+    user.email_verified = True
+    db.commit()
+    db.refresh(user)
+    return UserOut.from_user(user)
+
+
+@router.post(
+    "/resend-verification",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(limit("resend", 5, 3600))],
+)
+def resend_verification(
+    background: BackgroundTasks,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if user.email_verified:
+        return
+    hit(f"resend-user:{user.id}", 3, 3600)
+    _send_verification(db, user, background)

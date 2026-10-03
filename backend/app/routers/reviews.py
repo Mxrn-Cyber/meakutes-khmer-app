@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.ratelimit import limit
 from app.models.destination import Destination
 from app.models.review import Review
 from app.models.user import User
 from app.schemas.review import ReviewCreate, ReviewOut
-from app.security import get_current_user, get_current_user_optional, require_role
+from app.security import get_current_user, get_current_user_optional, require_role, get_verified_user
 
 router = APIRouter(prefix="/api/reviews", tags=["reviews"])
 
@@ -37,11 +38,11 @@ def list_reviews(
     return [_to_out(r) for r in reviews]
 
 
-@router.post("", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ReviewOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(limit("reviews", 20, 3600))])
 def create_or_update_review(
     payload: ReviewCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_verified_user),
 ):
     if not db.get(Destination, payload.destination_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")

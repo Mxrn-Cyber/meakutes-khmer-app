@@ -87,3 +87,13 @@ def require_role(*allowed_roles: str):
         return user
 
     return dependency
+
+
+EMAIL_NOT_VERIFIED = "Please confirm your email address first. Check your inbox for the link."
+
+
+def get_verified_user(user: User = Depends(get_current_user)) -> User:
+    """Signed in AND has confirmed their email (needed to post reviews and comments)."""
+    if not user.email_verified:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, EMAIL_NOT_VERIFIED)
+    return user

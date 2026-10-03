@@ -54,7 +54,7 @@ function SidebarContent({ links, onNavigate, user, onLogout }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-200 dark:border-gray-800">
-        <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
+        <img src="/images/logo.webp" alt="" className="h-9 w-9 rounded-xl object-contain" />
         <div className="leading-tight">
           <p className="font-extrabold tracking-tight text-gray-900 dark:text-white">Meakutes<span className="text-brand-600">-Khmer</span></p>
           <p className="text-xs text-gray-500 dark:text-gray-400">Admin panel</p>

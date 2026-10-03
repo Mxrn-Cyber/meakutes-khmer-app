@@ -15,6 +15,7 @@ import {
 import { useAuth } from "../context/useAuth";
 import { useTripContext } from "../context/useTrip";
 import { api } from "../api/client";
+import { PLACEHOLDER } from "../utils/imageFallback";
 import { useLang } from "../i18n";
 import LanguageMenu from "./LanguageMenu";
 
@@ -27,7 +28,7 @@ const NAV_LINKS = [
 ];
 
 const favoriteImage = (trip) =>
-  trip.images?.[0] ? api.mediaUrl(trip.images[0].url) : "/placeholder-image.jpg";
+  trip.images?.[0] ? api.mediaUrl(trip.images[0].url) : PLACEHOLDER;
 
 function readStoredTheme() {
   try {
@@ -142,7 +143,7 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8" aria-label={t("nav.main")}>
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
-          <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
+          <img src="/images/logo.webp" alt="" className="h-9 w-9 rounded-xl object-contain" />
           <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
             <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
           </span>
@@ -201,7 +202,7 @@ export default function Navbar() {
                     <ul className="max-h-80 overflow-y-auto py-1">
                       {favorites.map((trip) => (
                         <li key={trip.id} className="flex items-center gap-1 pr-3 hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <Link to={`/trip/${trip.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4">
+                          <Link to={`/trip/${trip.slug || trip.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4">
                             <img src={favoriteImage(trip)} alt="" className="h-11 w-11 rounded-lg object-cover" />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-sm font-medium">{pick(trip, "name")}</span>

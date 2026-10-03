@@ -54,6 +54,10 @@ export const api = {
   me: () => request("/auth/me"),
   updateMe: (payload) => request("/auth/me", { method: "PATCH", body: payload }),
   changePassword: (payload) => request("/auth/me/password", { method: "POST", body: payload }),
+  forgotPassword: (email) => request("/auth/forgot-password", { method: "POST", body: { email } }),
+  resetPassword: (token, password) => request("/auth/reset-password", { method: "POST", body: { token, password } }),
+  verifyEmail: (token) => request("/auth/verify-email", { method: "POST", body: { token } }),
+  resendVerification: () => request("/auth/resend-verification", { method: "POST" }),
   uploadAvatar: (file) => {
     const form = new FormData();
     form.append("file", file);

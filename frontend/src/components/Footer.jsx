@@ -31,7 +31,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:px-8">
         <div>
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
+            <img src="/images/logo.webp" alt="" className="h-10 w-10 rounded-xl object-contain" />
             <span className="text-lg font-extrabold tracking-tight">
               <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
             </span>

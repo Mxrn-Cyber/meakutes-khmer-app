@@ -11,6 +11,8 @@
     // instead of falling through to index.html.
     "run_worker_first": true
   },
+  // Ping the backend every 10 minutes so Render's free plan doesn't fall asleep.
+  "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
     // Change to your Render service URL.
     "BACKEND_URL": "https://meakutes-khmer-api.onrender.com"

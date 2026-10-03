@@ -65,10 +65,10 @@ export default function Signup() {
     setLoading(true);
     setApiError("");
     try {
-      await register({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
+      const me = await register({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
       // Phone isn't part of registration; the backend keeps it on the profile.
       if (form.phone) await updateProfile({ phone: form.phone }).catch(() => {});
-      navigate("/", { state: { message: t("auth.created") } });
+      navigate("/", { state: { message: me?.email_verified === false ? t("account.checkInbox") : t("auth.created") } });
     } catch (err) {
       setApiError(te(err, "auth.signupFailed"));
     } finally {

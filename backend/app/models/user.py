@@ -18,6 +18,8 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
     avatar_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
+    # False until the user clicks the link in the confirmation email.
+    email_verified: Mapped[bool] = mapped_column(default=False, server_default="1")
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 
     roles: Mapped[list["Role"]] = relationship(
@@ -74,4 +76,18 @@ class Session(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     token_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class UserToken(Base):
+    """One-time links sent by email (verify address, reset password). Only a hash is stored."""
+
+    __tablename__ = "user_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(20))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime)
+    used_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
+import { PLACEHOLDER } from "../utils/imageFallback";
 
 // Normalizes a backend DestinationOut into the shape the existing pages
 // (Home/Discover/Popular/TripCard/TripDetail) were written against, so we
@@ -8,7 +9,7 @@ export function mapDestination(d) {
   const imageUrls = (d.images || []).map((m) => api.mediaUrl(m.url));
   return {
     ...d,
-    image: imageUrls[0] || "/placeholder-image.jpg",
+    image: imageUrls[0] || PLACEHOLDER,
     images: imageUrls,
     reviews: d.reviews_count ?? 0,
     bestTime: d.best_time,

@@ -2,12 +2,12 @@
   {
     "id": "1",
     "name": "Angkor Wat",
-    "image": "/Trip-Image/ang-front.png",
+    "image": "/Trip-Image/ang-front.webp",
     "images": [
-      "/Trip-Image/ang-sunrises.png",
-      "/Trip-Image/ang-top.png",
-      "/Trip-Image/ang-view.png",
-      "/Trip-Image/angkor-view.png"
+      "/Trip-Image/ang-sunrises.webp",
+      "/Trip-Image/ang-top.webp",
+      "/Trip-Image/ang-view.webp",
+      "/Trip-Image/angkor-view.webp"
     ],
     "province": "Siem Reap",
     "latitude": 13.4125,
@@ -23,12 +23,12 @@
   {
     "id": "2",
     "name": "Bayon Temple",
-    "image": "/Trip-Image/bayon-2.png",
+    "image": "/Trip-Image/bayon-2.webp",
     "images": [
-      "/Trip-Image/bayon-front.png",
-      "/Trip-Image/Bayon-1.png",
-      "/Trip-Image/bayon.png",
-      "/Trip-Image/bayon-face.png"
+      "/Trip-Image/bayon-front.webp",
+      "/Trip-Image/Bayon-1.webp",
+      "/Trip-Image/bayon.webp",
+      "/Trip-Image/bayon-face.webp"
     ],
     "province": "Siem Reap",
     "latitude": 13.4413,
@@ -44,11 +44,11 @@
   {
     "id": "3",
     "name": "Ta Prohm",
-    "image": "/Trip-Image/ta-promh-1.png",
+    "image": "/Trip-Image/ta-promh-1.webp",
     "images": [
-      "/Trip-Image/ta-promh-2.png",
-      "/Trip-Image/ta-promh-3.png",
-      "/Trip-Image/ta-promh-4.png"
+      "/Trip-Image/ta-promh-2.webp",
+      "/Trip-Image/ta-promh-3.webp",
+      "/Trip-Image/ta-promh-4.webp"
     ],
     "province": "Siem Reap",
     "latitude": 13.4349,
@@ -65,11 +65,11 @@
   {
     "id": "4",
     "name": "Phnom Bakheng",
-    "image": "/Trip-Image/bakheng.png",
+    "image": "/Trip-Image/bakheng.webp",
     "images": [
-      "/Trip-Image/bakheng-1.png",
-      "/Trip-Image/bakheng-3.png",
-      "/Trip-Image/bakheng-4.png"
+      "/Trip-Image/bakheng-1.webp",
+      "/Trip-Image/bakheng-3.webp",
+      "/Trip-Image/bakheng-4.webp"
     ],
     "province": "Siem Reap",
     "latitude": 13.4238,
@@ -85,11 +85,11 @@
   {
     "id": "5",
     "name": "Banteay Srei",
-    "image": "/Trip-Image/bonteay-srei.png",
+    "image": "/Trip-Image/bonteay-srei.webp",
     "images": [
-      "/Trip-Image/bonteay-srei-1.png",
-      "/Trip-Image/bonteay-srei-2.png",
-      "/Trip-Image/bonteay-srei-3.png"
+      "/Trip-Image/bonteay-srei-1.webp",
+      "/Trip-Image/bonteay-srei-2.webp",
+      "/Trip-Image/bonteay-srei-3.webp"
     ],
     "province": "Siem Reap",
     "latitude": 13.5989,
@@ -105,11 +105,11 @@
   {
     "id": "6",
     "name": "Royal Palace",
-    "image": "/Trip-Image/royal-palace-2.png",
+    "image": "/Trip-Image/royal-palace-2.webp",
     "images": [
-      "/Trip-Image/royal-palace-1.png",
-      "/Trip-Image/royal-palace-3.png",
-      "/Trip-Image/royal-palace-front.png"
+      "/Trip-Image/royal-palace-1.webp",
+      "/Trip-Image/royal-palace-3.webp",
+      "/Trip-Image/royal-palace-front.webp"
     ],
     "province": "Phnom Penh",
     "latitude": 11.5639,
@@ -125,11 +125,11 @@
   {
     "id": "7",
     "name": "National Museum of Cambodia",
-    "image": "/Trip-Image/Museum-3.png",
+    "image": "/Trip-Image/Museum-3.webp",
     "images": [
-      "/Trip-Image/Museum-1.png",
-      "/Trip-Image/Museum.png",
-      "/Trip-Image/Museum-2.png"
+      "/Trip-Image/Museum-1.webp",
+      "/Trip-Image/Museum.webp",
+      "/Trip-Image/Museum-2.webp"
     ],
     "province": "Phnom Penh",
     "latitude": 11.5651,
@@ -145,11 +145,11 @@
   {
     "id": "8",
     "name": "Tuol Sleng Genocide Museum",
-    "image": "/Trip-Image/toul-sleng.png",
+    "image": "/Trip-Image/toul-sleng.webp",
     "images": [
-      "/Trip-Image/toul-sleng-3.png",
-      "/Trip-Image/toul-sleng-2.png",
-      "/Trip-Image/toul-sleng-1.png"
+      "/Trip-Image/toul-sleng-3.webp",
+      "/Trip-Image/toul-sleng-2.webp",
+      "/Trip-Image/toul-sleng-1.webp"
     ],
     "province": "Phnom Penh",
     "latitude": 11.5493,
@@ -165,11 +165,11 @@
   {
     "id": "9",
     "name": "Wat Phnom",
-    "image": "/Trip-Image/wat-phnom.png",
+    "image": "/Trip-Image/wat-phnom.webp",
     "images": [
-      "/Trip-Image/wat-phnom-2.png",
-      "/Trip-Image/wat-phnom-1.png",
-      "/Trip-Image/wat-phnom-3.png"
+      "/Trip-Image/wat-phnom-2.webp",
+      "/Trip-Image/wat-phnom-1.webp",
+      "/Trip-Image/wat-phnom-3.webp"
     ],
     "province": "Phnom Penh",
     "latitude": 11.5761,
@@ -185,11 +185,11 @@
   {
     "id": "10",
     "name": "Central Market (Phsar Thmei)",
-    "image": "/Trip-Image/central-market.png",
+    "image": "/Trip-Image/central-market.webp",
     "images": [
-      "/Trip-Image/central-market-1.png",
-      "/Trip-Image/central-market-2.png",
-      "/Trip-Image/central-market-3.png"
+      "/Trip-Image/central-market-1.webp",
+      "/Trip-Image/central-market-2.webp",
+      "/Trip-Image/central-market-3.webp"
     ],
     "province": "Phnom Penh",
     "latitude": 11.5696,
@@ -205,12 +205,12 @@
   {
     "id": "11",
     "name": "Bokor Hill Station",
-    "image": "/Trip-Image/bokor-hill.png",
+    "image": "/Trip-Image/bokor-hill.webp",
     "images": [
-      "/Trip-Image/bokor-casino.png",
-      "/Trip-Image/bokor-church.png",
-      "/Trip-Image/bokor-mist.png",
-      "/Trip-Image/bokor-palace.png"
+      "/Trip-Image/bokor-casino.webp",
+      "/Trip-Image/bokor-church.webp",
+      "/Trip-Image/bokor-mist.webp",
+      "/Trip-Image/bokor-palace.webp"
     ],
     "province": "Kampot",
     "latitude": 10.6167,
@@ -226,12 +226,12 @@
   {
     "id": "12",
     "name": "Kep Crab Market",
-    "image": "/Trip-Image/kep-crab.png",
+    "image": "/Trip-Image/kep-crab.webp",
     "images": [
-      "/Trip-Image/kep-seafood.png",
-      "/Trip-Image/kep-boats.png",
-      "/Trip-Image/kep-sunset.png",
-      "/Trip-Image/kep-beach.png"
+      "/Trip-Image/kep-seafood.webp",
+      "/Trip-Image/kep-boats.webp",
+      "/Trip-Image/kep-sunset.webp",
+      "/Trip-Image/kep-beach.webp"
     ],
     "province": "Kep",
     "latitude": 10.4833,
@@ -247,12 +247,12 @@
   {
     "id": "13",
     "name": "Sambor Prei Kuk",
-    "image": "/Trip-Image/sambor-prei-kuk.png",
+    "image": "/Trip-Image/sambor-prei-kuk.webp",
     "images": [
-      "/Trip-Image/sambor-temple.png",
-      "/Trip-Image/sambor-ruins.png",
-      "/Trip-Image/sambor-forest.png",
-      "/Trip-Image/sambor-carving.png"
+      "/Trip-Image/sambor-temple.webp",
+      "/Trip-Image/sambor-ruins.webp",
+      "/Trip-Image/sambor-forest.webp",
+      "/Trip-Image/sambor-carving.webp"
     ],
     "province": "Kampong Thom",
     "latitude": 12.8667,
@@ -268,12 +268,12 @@
   {
     "id": "14",
     "name": "Ratanakiri Crater Lakes",
-    "image": "/Trip-Image/yeak-laom.png",
+    "image": "/Trip-Image/yeak-laom.webp",
     "images": [
-      "/Trip-Image/crater-lake.png",
-      "/Trip-Image/ratanakiri-forest.png",
-      "/Trip-Image/ethnic-village.png",
-      "/Trip-Image/red-earth.png"
+      "/Trip-Image/crater-lake.webp",
+      "/Trip-Image/ratanakiri-forest.webp",
+      "/Trip-Image/ethnic-village.webp",
+      "/Trip-Image/red-earth.webp"
     ],
     "province": "Ratanakiri",
     "latitude": 13.75,
@@ -289,12 +289,12 @@
   {
     "id": "15",
     "name": "Mondulkiri Elephant Sanctuary",
-    "image": "/Trip-Image/mondulkiri-elephant.png",
+    "image": "/Trip-Image/mondulkiri-elephant.webp",
     "images": [
-      "/Trip-Image/elephant-bathing.png",
-      "/Trip-Image/elephant-feeding.png",
-      "/Trip-Image/mondulkiri-hills.png",
-      "/Trip-Image/bunong-village.png"
+      "/Trip-Image/elephant-bathing.webp",
+      "/Trip-Image/elephant-feeding.webp",
+      "/Trip-Image/mondulkiri-hills.webp",
+      "/Trip-Image/bunong-village.webp"
     ],
     "province": "Mondulkiri",
     "latitude": 12.45,
@@ -310,12 +310,12 @@
   {
     "id": "16",
     "name": "Kratie Mekong Dolphins",
-    "image": "/Trip-Image/irrawaddy-dolphin.png",
+    "image": "/Trip-Image/irrawaddy-dolphin.webp",
     "images": [
-      "/Trip-Image/mekong-sunset.png",
-      "/Trip-Image/dolphin-watching.png",
-      "/Trip-Image/kratie-riverfront.png",
-      "/Trip-Image/fishing-boats.png"
+      "/Trip-Image/mekong-sunset.webp",
+      "/Trip-Image/dolphin-watching.webp",
+      "/Trip-Image/kratie-riverfront.webp",
+      "/Trip-Image/fishing-boats.webp"
     ],
     "province": "Kratie",
     "latitude": 12.4833,
@@ -331,12 +331,12 @@
   {
     "id": "17",
     "name": "Stung Treng Rapids",
-    "image": "/Trip-Image/stung-treng-rapids.png",
+    "image": "/Trip-Image/stung-treng-rapids.webp",
     "images": [
-      "/Trip-Image/mekong-rapids.png",
-      "/Trip-Image/sopheakmit-waterfall.png",
-      "/Trip-Image/river-islands.png",
-      "/Trip-Image/fishing-village.png"
+      "/Trip-Image/mekong-rapids.webp",
+      "/Trip-Image/sopheakmit-waterfall.webp",
+      "/Trip-Image/river-islands.webp",
+      "/Trip-Image/fishing-village.webp"
     ],
     "province": "Stung Treng",
     "latitude": 13.5167,
@@ -352,12 +352,12 @@
   {
     "id": "18",
     "name": "Preah Vihear Temple",
-    "image": "/Trip-Image/preah-vihear.png",
+    "image": "/Trip-Image/preah-vihear.webp",
     "images": [
-      "/Trip-Image/preah-vihear-cliff.png",
-      "/Trip-Image/preah-vihear-view.png",
-      "/Trip-Image/temple-stairs.png",
-      "/Trip-Image/mountain-temple.png"
+      "/Trip-Image/preah-vihear-cliff.webp",
+      "/Trip-Image/preah-vihear-view.webp",
+      "/Trip-Image/temple-stairs.webp",
+      "/Trip-Image/mountain-temple.webp"
     ],
     "province": "Preah Vihear",
     "latitude": 14.3911,
@@ -373,12 +373,12 @@
   {
     "id": "19",
     "name": "Koh Kong Mangroves",
-    "image": "/Trip-Image/koh-kong-mangrove.png",
+    "image": "/Trip-Image/koh-kong-mangrove.webp",
     "images": [
-      "/Trip-Image/mangrove-forest.png",
-      "/Trip-Image/koh-kong-bridge.png",
-      "/Trip-Image/tatai-waterfall.png",
-      "/Trip-Image/cardamom-mountains.png"
+      "/Trip-Image/mangrove-forest.webp",
+      "/Trip-Image/koh-kong-bridge.webp",
+      "/Trip-Image/tatai-waterfall.webp",
+      "/Trip-Image/cardamom-mountains.webp"
     ],
     "province": "Koh Kong",
     "latitude": 11.6167,
@@ -394,12 +394,12 @@
   {
     "id": "20",
     "name": "Banlung Red Earth Landscapes",
-    "image": "/Trip-Image/banlung-red-earth.png",
+    "image": "/Trip-Image/banlung-red-earth.webp",
     "images": [
-      "/Trip-Image/red-soil.png",
-      "/Trip-Image/gem-mining.png",
-      "/Trip-Image/ethnic-market.png",
-      "/Trip-Image/jungle-trekking.png"
+      "/Trip-Image/red-soil.webp",
+      "/Trip-Image/gem-mining.webp",
+      "/Trip-Image/ethnic-market.webp",
+      "/Trip-Image/jungle-trekking.webp"
     ],
     "province": "Ratanakiri",
     "latitude": 13.7389,

@@ -136,7 +136,7 @@ Done. Next:
   source venv/bin/activate
   alembic upgrade head
   python seed/migrate_from_js.py --trips seed/tripsData.json \
-      --news seed/newsEvents.json --images-dir ../frontend/public
+      --news seed/newsEvents.json --images-dir seed/images
   uvicorn app.main:app --reload
 
 EOF

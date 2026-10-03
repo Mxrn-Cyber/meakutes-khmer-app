@@ -162,7 +162,7 @@ function EventCard({ event, index = 0 }) {
   return (
     <Link
       {...reveal(index)}
-      to={`/article/${event.id}`}
+      to={`/article/${event.slug || event.id}`}
       className="group flex gap-4 rounded-2xl bg-white p-3 shadow-card ring-1 ring-gray-900/5 transition-shadow duration-300 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
       <div className={`relative w-32 shrink-0 self-start ${RATIO.photo} overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800`}>

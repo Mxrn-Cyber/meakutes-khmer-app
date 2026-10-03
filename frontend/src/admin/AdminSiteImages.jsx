@@ -306,7 +306,7 @@ export default function AdminSiteImages() {
             on the website right away; use the reset button to go back to the original.
           </p>
         </div>
-        <a href="#/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline">
+        <a href="/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline">
           View website <ExternalLink size={14} />
         </a>
       </div>

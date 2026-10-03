@@ -1,6 +1,6 @@
 """Import every model module here so Base.metadata (and Alembic autogenerate) sees all tables."""
 
-from app.models.user import OAuthAccount, Role, Session, User, UserRole  # noqa: F401
+from app.models.user import OAuthAccount, Role, Session, User, UserRole, UserToken  # noqa: F401
 from app.models.media import Media  # noqa: F401
 from app.models.destination import (  # noqa: F401
     Category,

@@ -26,6 +26,7 @@ class UserOut(BaseModel):
     phone: str | None
     avatar_url: str | None = None
     roles: list[str] = []
+    email_verified: bool = True
 
     model_config = {"from_attributes": True}
 
@@ -40,6 +41,7 @@ class UserOut(BaseModel):
             phone=user.phone,
             avatar_url=user.avatar.url if user.avatar else None,
             roles=[r.name for r in user.roles],
+            email_verified=bool(user.email_verified),
         )
 
 
@@ -55,3 +57,15 @@ class UpdateProfileRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)
+
+
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class TokenRequest(BaseModel):
+    token: str = Field(min_length=10, max_length=200)
+
+
+class ResetPasswordRequest(TokenRequest):
+    password: str = Field(min_length=8)

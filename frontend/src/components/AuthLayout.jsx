@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { loadGoogleScript } from "../utils/googleAuth";
 import { useLang } from "../i18n";
 
-export function AuthLayout({ title, subtitle, children, footer, image = "/angkor-morning.png" }) {
+export function AuthLayout({ title, subtitle, children, footer, image = "/images/angkor-morning.webp" }) {
   const { t, lang } = useLang();
   return (
     <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
@@ -28,7 +28,7 @@ export function AuthLayout({ title, subtitle, children, footer, image = "/angkor
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-md animate-rise-in">
           <Link to="/" className="mb-8 inline-flex items-center gap-2.5 lg:hidden">
-            <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
+            <img src="/images/logo.webp" alt="" className="h-9 w-9 rounded-xl object-contain" />
             <span className="text-lg font-extrabold">
               <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
             </span>
