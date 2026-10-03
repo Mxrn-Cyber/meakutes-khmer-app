@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, Clock, Accessibility, CalendarPlus, Download, Share2, Check } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import CommentsPanel from "../components/CommentsPanel";
-import { Container, buttonClass } from "../components/ui";
+import { Container, buttonClass, RATIO } from "../components/ui";
 import { eventStatus, daysUntil, googleCalendarUrl, downloadIcs, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
 
@@ -176,7 +176,7 @@ export default function Article() {
                   to={`/article/${e.id}`}
                   className="group overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
                 >
-                  <div className="aspect-[16/10] overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <div className={`${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
                     {e.pic && <img src={e.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
                   </div>
                   <div className="p-5">

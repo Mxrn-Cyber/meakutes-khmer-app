@@ -4,6 +4,16 @@ import { useAuth } from "../context/AuthContext";
 import { useTripContext } from "../context/TripContext";
 import { useLang } from "../i18n";
 
+// Photo shapes used across the site. Upload guide: Admin > Media Library.
+//   photo  4:3  cards, thumbnails, gallery tiles, story images      upload 1600x1200 (min 1200x900)
+//   banner 16:9 page banners, event headers, big gallery photo      upload 1920x1080 (min 1600x900)
+//   square 1:1  profile and team photos                            upload 600x600 (min 400x400)
+export const RATIO = {
+  photo: "aspect-[4/3]",
+  banner: "aspect-[16/9]",
+  square: "aspect-square",
+};
+
 export function Container({ className = "", children }) {
   return <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>;
 }
@@ -114,7 +124,7 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
       to={`/trip/${trip.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className={`relative ${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
         <img
           src={trip.image}
           alt={name}
@@ -177,7 +187,7 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
 export function PlaceCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
-      <div className="aspect-[4/3] animate-pulse bg-gray-200 dark:bg-gray-800" />
+      <div className={`${RATIO.photo} animate-pulse bg-gray-200 dark:bg-gray-800`} />
       <div className="space-y-2 p-4">
         <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
         <div className="h-3 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-800" />

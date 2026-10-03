@@ -326,7 +326,7 @@ const AdminDestinations = () => {
             <CheckboxGroup items={tags} selected={form.tag_ids} onToggle={(id) => toggleInArray("tag_ids", id)} />
           </Field>
 
-          <Field label="Images (from Media Library, click to select — order = click order)">
+          <Field label="Images (from Media Library, click to select — order = click order; the first one is the cover. Landscape 1600×1200, see Photo guide)">
             {media.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 No media uploaded yet. Add images from the Media Library page first.
@@ -341,7 +341,7 @@ const AdminDestinations = () => {
                       type="button"
                       key={m.id}
                       onClick={() => toggleInArray("media_ids", m.id)}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 ${
+                      className={`relative aspect-[4/3] rounded-xl overflow-hidden border-2 ${
                         selected ? "border-brand-600" : "border-transparent"
                       }`}
                     >

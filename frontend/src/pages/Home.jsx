@@ -12,6 +12,7 @@ import {
   PlaceCard,
   PlaceCardSkeleton,
   buttonClass,
+  RATIO,
 } from "../components/ui";
 
 // Captions are in home.slides (en.js / km.js), in the same order.
@@ -129,7 +130,7 @@ function ProvinceTiles({ places }) {
           key={p.name}
           to={`/discover?province=${encodeURIComponent(p.name)}`}
           className={`group relative isolate overflow-hidden rounded-2xl bg-gray-900 ${
-            i === 0 ? "col-span-2 aspect-[2/1] lg:row-span-2 lg:aspect-auto" : "aspect-[4/3]"
+            i === 0 ? `col-span-2 ${RATIO.banner} lg:row-span-2 lg:aspect-auto` : RATIO.photo
           } ${i === 8 ? "hidden lg:block" : i === 7 ? "hidden sm:block" : ""}`}
         >
           <img src={p.image} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-90" />
@@ -151,7 +152,7 @@ function EventCard({ event }) {
       to={`/article/${event.id}`}
       className="group flex gap-4 rounded-2xl bg-white p-3 shadow-card ring-1 ring-gray-900/5 transition hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
-      <div className="relative h-24 w-28 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
+      <div className={`relative w-32 shrink-0 self-start ${RATIO.photo} overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800`}>
         {event.pic && <img src={event.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
       </div>
       <div className="min-w-0 py-1">
@@ -255,7 +256,7 @@ export default function Home() {
       <Container className="py-16 sm:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div className="relative">
-            <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className="aspect-[4/3] w-full rounded-3xl object-cover shadow-lift" />
+            <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`} />
             <div className="absolute -bottom-5 right-5 rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
               <p className="text-2xl font-bold text-brand-600">ITE G8</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{t("home.project")}</p>

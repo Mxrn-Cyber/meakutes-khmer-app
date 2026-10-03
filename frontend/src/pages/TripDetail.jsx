@@ -23,41 +23,46 @@ import { useDestination, useDestinations } from "../hooks/useDestinations";
 import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
-import { Container, PlaceCard, Stars, RatingPill, buttonClass } from "../components/ui";
+import { Container, PlaceCard, Stars, RatingPill, buttonClass, RATIO } from "../components/ui";
 import { useLang } from "../i18n";
 
 const mapOptions = { zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true };
 
+// Desktop mosaic layouts. Each grid's aspect ratio is chosen so every tile is exactly 4:3:
+//   2 photos: 2 tiles side by side          (grid 8:3)
+//   3-4:      big photo + 2 small on the right (grid 2:1)
+//   5+:       big photo + 4 small            (grid 8:3)
+const MOSAIC = {
+  2: { count: 2, grid: "aspect-[8/3] grid-cols-2 grid-rows-1", main: "" },
+  3: { count: 3, grid: "aspect-[2/1] grid-cols-3 grid-rows-2", main: "col-span-2 row-span-2" },
+  5: { count: 5, grid: "aspect-[8/3] grid-cols-4 grid-rows-2", main: "col-span-2 row-span-2" },
+};
+
 function Gallery({ images, name, onOpen }) {
   const { t } = useLang();
-  const shown = images.slice(0, 5);
-  if (shown.length <= 1) {
+  if (images.length <= 1) {
     return (
       <button type="button" onClick={() => onOpen(0)} className="block w-full overflow-hidden rounded-3xl">
-        <img src={shown[0]} alt={name} className="aspect-[16/9] w-full object-cover" />
+        <img src={images[0]} alt={name} className={`${RATIO.banner} w-full object-cover`} />
       </button>
     );
   }
+  const layout = images.length >= 5 ? MOSAIC[5] : images.length >= 3 ? MOSAIC[3] : MOSAIC[2];
+  const shown = images.slice(0, layout.count);
   return (
     <div className="relative">
       {/* Phone: one photo with a counter */}
       <button type="button" onClick={() => onOpen(0)} className="block w-full overflow-hidden rounded-2xl md:hidden">
-        <img src={shown[0]} alt={name} className="aspect-[4/3] w-full object-cover" />
+        <img src={shown[0]} alt={name} className={`${RATIO.photo} w-full object-cover`} />
       </button>
       {/* Tablet and up: mosaic */}
-      <div className="hidden h-[460px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-3xl md:grid">
+      <div className={`hidden gap-2 overflow-hidden rounded-3xl md:grid ${layout.grid}`}>
         {shown.map((src, i) => (
           <button
             key={src + i}
             type="button"
             onClick={() => onOpen(i)}
-            className={`group relative overflow-hidden bg-gray-100 dark:bg-gray-800 ${
-              i === 0 || shown.length === 2
-                ? "col-span-2 row-span-2"
-                : shown.length === 3 || (shown.length === 4 && i === 3)
-                ? "col-span-2"
-                : ""
-            }`}
+            className={`group relative overflow-hidden bg-gray-100 dark:bg-gray-800 ${i === 0 ? layout.main : ""}`}
           >
             <img src={src} alt={i === 0 ? name : ""} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
           </button>

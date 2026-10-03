@@ -7,7 +7,6 @@ export const MACHINE_LANGUAGES = [
   { code: "zh-CN", label: "简体中文", short: "中文" },
   { code: "ko", label: "한국어", short: "한국어" },
   { code: "ja", label: "日本語", short: "日本語" },
-  { code: "th", label: "ไทย", short: "ไทย" },
   { code: "vi", label: "Tiếng Việt", short: "VI" },
   { code: "fr", label: "Français", short: "FR" },
 ];

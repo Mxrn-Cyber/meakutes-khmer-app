@@ -16,7 +16,7 @@ import {
   Mail,
 } from "lucide-react";
 import { api } from "../api/client";
-import { Container, PageHero, buttonClass } from "../components/ui";
+import { Container, PageHero, buttonClass, RATIO } from "../components/ui";
 import { useLang, Rich } from "../i18n";
 
 const STEPS = [
@@ -150,7 +150,7 @@ export default function About() {
             src="/Trip-Image/about-team.png"
             alt={t("about.teamPhoto")}
             loading="lazy"
-            className="aspect-[4/5] w-full rounded-3xl object-cover shadow-lift"
+            className={`${RATIO.photo} w-full rounded-3xl object-cover shadow-lift`}
           />
         </div>
       </Container>
@@ -219,7 +219,7 @@ export default function About() {
               const m = { ...person, ...t("about.team")[i] };
               return (
               <article key={i} className="flex gap-5 rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
-                <img src={m.photo} alt={m.name} loading="lazy" className="h-24 w-24 shrink-0 rounded-2xl object-cover ring-4 ring-brand-50 dark:ring-gray-800" />
+                <img src={m.photo} alt={m.name} loading="lazy" className={`h-24 w-24 shrink-0 ${RATIO.square} rounded-2xl object-cover ring-4 ring-brand-50 dark:ring-gray-800`} />
                 <div className="min-w-0">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{m.name}</h3>
                   <p className="text-sm font-semibold text-brand-600 dark:text-brand-400">{m.role}</p>

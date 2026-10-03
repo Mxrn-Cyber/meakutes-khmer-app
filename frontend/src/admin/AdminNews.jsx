@@ -247,7 +247,7 @@ const AdminNews = () => {
             </Field>
           </fieldset>
 
-          <Field label="Cover image (from Media Library)">
+          <Field label="Cover image (from Media Library; landscape 1920×1080, see Photo guide)">
             {media.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 No media uploaded yet. Add images from the Media Library page first.
@@ -261,7 +261,7 @@ const AdminNews = () => {
                       type="button"
                       key={m.id}
                       onClick={() => setForm({ ...form, media_id: selected ? null : m.id })}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 ${
+                      className={`relative aspect-[4/3] rounded-xl overflow-hidden border-2 ${
                         selected ? "border-brand-600" : "border-transparent"
                       }`}
                     >

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, CalendarDays, CalendarX2, ArrowRight } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
-import { Container, PageHero, EmptyState } from "../components/ui";
+import { Container, PageHero, EmptyState, PlaceCardSkeleton, RATIO } from "../components/ui";
 import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
 import { useLang } from "../i18n";
 
@@ -54,7 +54,7 @@ function EventCard({ item }) {
       to={`/article/${item.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-900/5 transition hover:-translate-y-1 hover:shadow-lift dark:bg-gray-900 dark:ring-white/10"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className={`relative ${RATIO.photo} overflow-hidden bg-gray-100 dark:bg-gray-800`}>
         {item.pic && <img src={item.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
         <div className="absolute left-3 top-3">
           <DateBadge item={item} />
@@ -90,7 +90,7 @@ function FeaturedEvent({ item }) {
       to={`/article/${item.id}`}
       className="group relative isolate grid overflow-hidden rounded-3xl bg-gray-900 shadow-lift md:grid-cols-2"
     >
-      <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[340px]">
+      <div className={`relative ${RATIO.banner} md:aspect-auto md:min-h-[360px]`}>
         {item.pic && <img src={item.pic} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
       </div>
       <div className="flex flex-col justify-center p-6 text-white sm:p-10">
@@ -176,7 +176,7 @@ export default function NewsEvents() {
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800" />
+              <PlaceCardSkeleton key={i} />
             ))}
           </div>
         ) : !featured ? (
