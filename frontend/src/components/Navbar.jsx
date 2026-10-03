@@ -11,19 +11,19 @@ import {
   LayoutDashboard,
   ChevronDown,
   Trash2,
-  Languages,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTripContext } from "../context/TripContext";
 import { api } from "../api/client";
-import { setLanguage } from "./Translator";
+import { useLang } from "../i18n";
+import LanguageMenu from "./LanguageMenu";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home", end: true },
-  { to: "/discover", label: "Discover" },
-  { to: "/popular", label: "Popular" },
-  { to: "/news", label: "News & Events" },
-  { to: "/about", label: "About" },
+  { to: "/", key: "nav.home", end: true },
+  { to: "/discover", key: "nav.discover" },
+  { to: "/popular", key: "nav.popular" },
+  { to: "/news", key: "nav.news" },
+  { to: "/about", key: "nav.about" },
 ];
 
 const favoriteImage = (trip) =>
@@ -35,10 +35,6 @@ function readStoredTheme() {
   } catch {
     return false;
   }
-}
-
-function currentLangFromCookie() {
-  return /googtrans=\/[a-z]+\/km/.test(document.cookie) ? "km" : "en";
 }
 
 function useClickOutside(ref, onOutside) {
@@ -80,13 +76,13 @@ export default function Navbar() {
   const { favorites, removeFromFavorites } = useTripContext();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { t, pick, tv } = useLang();
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [dark, setDark] = useState(readStoredTheme);
-  const [lang, setLang] = useState(currentLangFromCookie);
 
   const favRef = useRef(null);
   const userRef = useRef(null);
@@ -122,15 +118,10 @@ export default function Navbar() {
     };
   }, [mobileOpen]);
 
-  const switchLanguage = () => {
-    const next = lang === "en" ? "km" : "en";
-    setLang(next);
-    setLanguage(next);
-  };
 
   const handleLogout = async () => {
     // Leave protected pages first, so their own redirect doesn't drop the message.
-    navigate("/login", { state: { message: "Logged out successfully." } });
+    navigate("/login", { state: { message: t("nav.loggedOut") } });
     await logout();
   };
 
@@ -149,39 +140,31 @@ export default function Navbar() {
           : "bg-white/70 backdrop-blur dark:bg-gray-950/70"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8" aria-label="Main">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8" aria-label={t("nav.main")}>
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
           <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
           <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Meakutes<span className="text-brand-600">-Khmer</span>
+            <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
           </span>
         </Link>
 
         <div className="ml-6 hidden flex-1 items-center gap-1 lg:flex">
           {NAV_LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.end} className={linkClass}>
-              {l.label}
+              {t(l.key)}
             </NavLink>
           ))}
         </div>
 
         <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={switchLanguage}
-            className="hidden h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 sm:inline-flex"
-            title="Change language"
-          >
-            <Languages size={18} />
-            <span className={lang === "en" ? "font-khmer" : ""}>{lang === "en" ? "ខ្មែរ" : "English"}</span>
-          </button>
+          <LanguageMenu className="hidden sm:block" />
 
           <button
             type="button"
             onClick={() => setDark((d) => !d)}
             className={`${iconButton} hidden sm:grid`}
-            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-            title={dark ? "Light mode" : "Dark mode"}
+            aria-label={dark ? t("nav.toLight") : t("nav.toDark")}
+            title={dark ? t("nav.lightMode") : t("nav.darkMode")}
           >
             {dark ? <Sun size={19} /> : <Moon size={19} />}
           </button>
@@ -192,7 +175,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setFavOpen((o) => !o)}
                 className={`${iconButton} relative`}
-                aria-label="Favourites"
+                aria-label={t("nav.favourites")}
                 aria-expanded={favOpen}
               >
                 <Heart size={19} />
@@ -205,11 +188,11 @@ export default function Navbar() {
               {favOpen && (
                 <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-lift ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
                   <p className="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">
-                    Saved places ({favorites.length})
+                    {t("nav.savedPlaces", { count: favorites.length })}
                   </p>
                   {favorites.length === 0 ? (
                     <p className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                      Tap the heart on any place to save it here.
+                      {t("nav.savedEmpty")}
                     </p>
                   ) : (
                     <ul className="max-h-80 overflow-y-auto py-1">
@@ -218,9 +201,9 @@ export default function Navbar() {
                           <Link to={`/trip/${trip.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4">
                             <img src={favoriteImage(trip)} alt="" className="h-11 w-11 rounded-lg object-cover" />
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-medium">{trip.name}</span>
+                              <span className="block truncate text-sm font-medium">{pick(trip, "name")}</span>
                               <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
-                                {trip.province}
+                                {tv(trip.province)}
                               </span>
                             </span>
                           </Link>
@@ -228,7 +211,7 @@ export default function Navbar() {
                             type="button"
                             onClick={() => removeFromFavorites(trip.id)}
                             className="rounded-full p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-gray-700"
-                            aria-label={`Remove ${trip.name}`}
+                            aria-label={t("nav.remove", { name: pick(trip, "name") })}
                           >
                             <Trash2 size={15} />
                           </button>
@@ -260,11 +243,11 @@ export default function Navbar() {
                     <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                   </div>
                   <Link to="/profile" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <User size={16} /> My profile
+                    <User size={16} /> {t("nav.profile")}
                   </Link>
                   {isEditor && (
                     <Link to="/admin" className="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <LayoutDashboard size={16} /> Admin panel
+                      <LayoutDashboard size={16} /> {t("nav.admin")}
                     </Link>
                   )}
                   <button
@@ -272,7 +255,7 @@ export default function Navbar() {
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800"
                   >
-                    <LogOut size={16} /> Log out
+                    <LogOut size={16} /> {t("nav.logout")}
                   </button>
                 </div>
               )}
@@ -280,10 +263,10 @@ export default function Navbar() {
           ) : (
             <div className="hidden items-center gap-1 lg:flex">
               <Link to="/login" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
-                Log in
+                {t("nav.login")}
               </Link>
               <Link to="/signup" className="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
-                Sign up
+                {t("nav.signup")}
               </Link>
             </div>
           )}
@@ -292,7 +275,7 @@ export default function Navbar() {
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
             className={`${iconButton} lg:hidden`}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-label={mobileOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -325,39 +308,37 @@ export default function Navbar() {
                   }`
                 }
               >
-                {l.label}
+                {t(l.key)}
               </NavLink>
             ))}
           </div>
-          <div className="my-4 grid grid-cols-2 gap-2">
-            <button type="button" onClick={switchLanguage} className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 text-sm font-medium dark:bg-gray-800">
-              <Languages size={18} /> {lang === "en" ? "ខ្មែរ" : "English"}
-            </button>
-            <button type="button" onClick={() => setDark((d) => !d)} className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 text-sm font-medium dark:bg-gray-800">
-              {dark ? <Sun size={18} /> : <Moon size={18} />} {dark ? "Light" : "Dark"}
+          <LanguageMenu variant="panel" className="mt-4" />
+          <div className="my-4">
+            <button type="button" onClick={() => setDark((d) => !d)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 text-sm font-medium dark:bg-gray-800">
+              {dark ? <Sun size={18} /> : <Moon size={18} />} {dark ? t("nav.light") : t("nav.dark")}
             </button>
           </div>
           {user ? (
             <div className="space-y-1 border-t border-gray-200 pt-4 dark:border-gray-800">
               <Link to="/profile" className="flex items-center gap-3 rounded-xl px-4 py-3 font-medium hover:bg-gray-100 dark:hover:bg-gray-800">
-                <User size={18} /> My profile
+                <User size={18} /> {t("nav.profile")}
               </Link>
               {isEditor && (
                 <Link to="/admin" className="flex items-center gap-3 rounded-xl px-4 py-3 font-medium hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <LayoutDashboard size={18} /> Admin panel
+                  <LayoutDashboard size={18} /> {t("nav.admin")}
                 </Link>
               )}
               <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800">
-                <LogOut size={18} /> Log out
+                <LogOut size={18} /> {t("nav.logout")}
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-4 dark:border-gray-800">
               <Link to="/login" className="rounded-xl bg-gray-100 py-3 text-center font-semibold dark:bg-gray-800">
-                Log in
+                {t("nav.login")}
               </Link>
               <Link to="/signup" className="rounded-xl bg-brand-600 py-3 text-center font-semibold text-white">
-                Sign up
+                {t("nav.signup")}
               </Link>
             </div>
           )}

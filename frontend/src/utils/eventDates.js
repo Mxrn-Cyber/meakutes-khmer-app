@@ -107,9 +107,18 @@ export function downloadIcs(item) {
   return true;
 }
 
-export function dateBadge(item) {
+const KHMER_MONTHS = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+const KHMER_DIGITS = "០១២៣៤៥៦៧៨៩";
+
+export function dateBadge(item, locale = "en") {
   const r = eventRange(item);
   if (!r) return null;
+  if (locale.startsWith("km")) {
+    return {
+      month: KHMER_MONTHS[r.start.getMonth()],
+      day: String(r.start.getDate()).replace(/[0-9]/g, (d) => KHMER_DIGITS[d]),
+    };
+  }
   return {
     month: r.start.toLocaleString("en", { month: "short" }).toUpperCase(),
     day: r.start.getDate(),

@@ -7,10 +7,12 @@ const STATUS_OPTIONS = ["draft", "published"];
 
 const emptyForm = {
   title: "",
+  title_km: "",
   date_label: "",
   event_date: "",
   location: "",
   description: "",
+  description_km: "",
   best_time: "",
   accessibility: "",
   status: "draft",
@@ -20,10 +22,12 @@ const emptyForm = {
 function toFormState(item) {
   return {
     title: item.title || "",
+    title_km: item.title_km || "",
     date_label: item.date_label || "",
     event_date: item.event_date || "",
     location: item.location || "",
     description: item.description || "",
+    description_km: item.description_km || "",
     best_time: item.best_time || "",
     accessibility: item.accessibility || "",
     status: item.status || "draft",
@@ -215,6 +219,34 @@ const AdminNews = () => {
             />
           </Field>
 
+          <fieldset className="space-y-4 rounded-2xl bg-brand-50/60 p-4 ring-1 ring-brand-100 dark:bg-gray-800/40 dark:ring-white/10">
+            <legend className="px-1 text-sm font-semibold text-gray-900 dark:text-white">
+              Khmer version <span className="font-normal text-gray-500 dark:text-gray-400">· ភាសាខ្មែរ</span>
+            </legend>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Shown when visitors switch the site to Khmer. Leave a field empty to show the English text instead.
+              Dates, months, "Nationwide" and province names are translated automatically.
+            </p>
+            <Field label="Title in Khmer">
+              <input
+                lang="km"
+                value={form.title_km}
+                onChange={(e) => setForm({ ...form, title_km: e.target.value })}
+                className={inputClass}
+                placeholder="ឧ. ពិធីបុណ្យអុំទូក"
+              />
+            </Field>
+            <Field label="Description in Khmer">
+              <textarea
+                lang="km"
+                rows={6}
+                value={form.description_km}
+                onChange={(e) => setForm({ ...form, description_km: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+          </fieldset>
+
           <Field label="Cover image (from Media Library)">
             {media.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -293,7 +325,10 @@ const AdminNews = () => {
                   ) : (
                     <ImageIcon size={16} className="text-gray-300" />
                   )}
-                  {item.title}
+                  <span className="min-w-0">
+                    <span className="block">{item.title}</span>
+                    {item.title_km && <span lang="km" className="block text-xs text-gray-500 dark:text-gray-400">{item.title_km}</span>}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{item.date_label || "-"}</td>
                 <td className="px-4 py-3">

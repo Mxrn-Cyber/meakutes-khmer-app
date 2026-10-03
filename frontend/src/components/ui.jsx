@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Heart, MapPin, Star, Clock, ArrowRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTripContext } from "../context/TripContext";
+import { useLang } from "../i18n";
 
 export function Container({ className = "", children }) {
   return <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>;
@@ -28,22 +29,28 @@ export function SectionHeading({ eyebrow, title, subtitle, action, center = fals
   );
 }
 
-export function ViewAllLink({ to, children = "View all" }) {
+export function ViewAllLink({ to, children }) {
+  const { t } = useLang();
   return (
     <Link
       to={to}
       className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
     >
-      {children}
+      {children ?? t("common.viewAll")}
       <ArrowRight size={16} />
     </Link>
   );
 }
 
 export function Stars({ value = 0, size = 14, className = "" }) {
+  const { t } = useLang();
   const rounded = Math.round((Number(value) || 0) * 2) / 2;
   return (
-    <span className={`inline-flex items-center gap-0.5 ${className}`} aria-label={`${value || 0} out of 5`}>
+    <span
+      className={`inline-flex items-center gap-0.5 ${className}`}
+      role="img"
+      aria-label={t("common.outOf5", { value: Math.round((Number(value) || 0) * 10) / 10 })}
+    >
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
@@ -62,12 +69,13 @@ export function Stars({ value = 0, size = 14, className = "" }) {
 }
 
 export function RatingPill({ rating, count }) {
+  const { t, num } = useLang();
   const hasRating = Number(rating) > 0;
   return (
     <span className="inline-flex items-center gap-1 text-sm">
       <Star size={15} className={hasRating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"} />
-      <span className="font-semibold text-gray-900 dark:text-white">{hasRating ? Number(rating).toFixed(1) : "New"}</span>
-      {count > 0 && <span className="text-gray-500 dark:text-gray-400">({count})</span>}
+      <span className="font-semibold text-gray-900 dark:text-white">{hasRating ? num(Number(rating).toFixed(1)) : t("common.new")}</span>
+      {count > 0 && <span className="text-gray-500 dark:text-gray-400">({num(count)})</span>}
     </span>
   );
 }
@@ -76,6 +84,7 @@ export function FavoriteButton({ trip, className = "" }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { isFavorite, toggleFavorite } = useTripContext();
+  const { t } = useLang();
   const liked = isFavorite(trip.id);
   return (
     <button
@@ -86,8 +95,8 @@ export function FavoriteButton({ trip, className = "" }) {
         if (!isAuthenticated) return navigate("/login");
         toggleFavorite(trip);
       }}
-      aria-label={liked ? "Remove from favourites" : "Save to favourites"}
-      title={liked ? "Saved" : "Save"}
+      aria-label={liked ? t("place.unsave") : t("place.save")}
+      title={liked ? t("common.saved") : t("common.save")}
       className={`grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white dark:bg-gray-900/80 ${className}`}
     >
       <Heart size={18} className={liked ? "fill-rose-500 text-rose-500" : "text-gray-700 dark:text-gray-200"} />
@@ -97,6 +106,9 @@ export function FavoriteButton({ trip, className = "" }) {
 
 // Photo-first card for a destination. `trip` is the shape from useDestinations().
 export function PlaceCard({ trip, rank, onProvinceClick }) {
+  const { t, pick, tv, num } = useLang();
+  const name = pick(trip, "name");
+  const description = pick(trip, "description");
   return (
     <Link
       to={`/trip/${trip.id}`}
@@ -105,21 +117,21 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
         <img
           src={trip.image}
-          alt={trip.name}
+          alt={name}
           loading="lazy"
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0" />
         {rank && (
           <span className="absolute left-3 top-3 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-gray-900 shadow">
-            #{rank}
+            #{num(rank)}
           </span>
         )}
         <FavoriteButton trip={trip} className="absolute right-3 top-3" />
         {trip.province && (
           <span
             role={onProvinceClick ? "button" : undefined}
-            aria-label={onProvinceClick ? `Show places in ${trip.province}` : undefined}
+            aria-label={onProvinceClick ? t("place.showIn", { province: tv(trip.province) }) : undefined}
             onClick={
               onProvinceClick
                 ? (e) => {
@@ -132,29 +144,29 @@ export function PlaceCard({ trip, rank, onProvinceClick }) {
             className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-gray-800 backdrop-blur dark:bg-gray-900/80 dark:text-gray-100"
           >
             <MapPin size={12} />
-            {trip.province}
+            {tv(trip.province)}
           </span>
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-semibold leading-snug text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
-            {trip.name}
+            {name}
           </h3>
           <RatingPill rating={trip.rating} count={trip.reviews} />
         </div>
-        {trip.description && (
-          <p className="mt-1.5 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{trip.description}</p>
+        {description && (
+          <p className="mt-1.5 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{description}</p>
         )}
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-3 text-xs text-gray-600 dark:text-gray-400">
           {trip.duration && (
             <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">
               <Clock size={12} />
-              {trip.duration}
+              {tv(trip.duration)}
             </span>
           )}
           {trip.bestTime && (
-            <span className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">Best: {trip.bestTime}</span>
+            <span className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">{t("place.best", { value: tv(trip.bestTime) })}</span>
           )}
         </div>
       </div>

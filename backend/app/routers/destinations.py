@@ -74,7 +74,12 @@ def list_destinations(
         query = query.join(Destination.categories).filter(Category.slug == category)
     if q:
         like = f"%{q}%"
-        query = query.filter(Destination.name.ilike(like) | Destination.description.ilike(like))
+        query = query.filter(
+            Destination.name.ilike(like)
+            | Destination.name_km.ilike(like)
+            | Destination.description.ilike(like)
+            | Destination.description_km.ilike(like)
+        )
     destinations = query.order_by(Destination.created_at.desc()).all()
     return [_to_out(db, d) for d in destinations]
 

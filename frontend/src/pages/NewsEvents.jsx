@@ -4,19 +4,21 @@ import { MapPin, CalendarDays, CalendarX2, ArrowRight } from "lucide-react";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import { Container, PageHero, EmptyState } from "../components/ui";
 import { eventRange, eventStatus, daysUntil, dateBadge } from "../utils/eventDates";
+import { useLang } from "../i18n";
 
 const TABS = [
-  { key: "all", label: "All" },
-  { key: "now", label: "Happening now" },
-  { key: "upcoming", label: "Upcoming" },
+  { key: "all", label: "news.all" },
+  { key: "now", label: "news.now" },
+  { key: "upcoming", label: "news.upcoming" },
 ];
 
 function StatusBadge({ item }) {
+  const { t } = useLang();
   const status = eventStatus(item);
   if (status === "now") {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-semibold text-white">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Happening now
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> {t("news.now")}
       </span>
     );
   }
@@ -24,7 +26,7 @@ function StatusBadge({ item }) {
   if (status === "upcoming" && days != null && days <= 60) {
     return (
       <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900">
-        In {days} {days === 1 ? "day" : "days"}
+        {t("common.inDays", { count: days })}
       </span>
     );
   }
@@ -32,17 +34,21 @@ function StatusBadge({ item }) {
 }
 
 function DateBadge({ item }) {
-  const b = dateBadge(item);
+  const { locale } = useLang();
+  const b = dateBadge(item, locale);
   if (!b) return null;
   return (
     <div className="grid w-14 place-items-center rounded-xl bg-white py-1.5 text-center shadow-lift dark:bg-gray-900">
-      <span className="text-[11px] font-bold tracking-wide text-rose-600">{b.month}</span>
+      <span className="max-w-full truncate px-0.5 text-[11px] font-bold tracking-wide text-rose-600">{b.month}</span>
       <span className="text-xl font-extrabold leading-none text-gray-900 dark:text-white">{b.day}</span>
     </div>
   );
 }
 
 function EventCard({ item }) {
+  const { t, pick, tv } = useLang();
+  const title = pick(item, "title");
+  const description = pick(item, "description");
   return (
     <Link
       to={`/article/${item.id}`}
@@ -59,16 +65,16 @@ function EventCard({ item }) {
       </div>
       <div className="flex flex-1 flex-col p-5">
         <p className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 dark:text-brand-400">
-          <CalendarDays size={15} /> {item.date || "Date to be announced"}
+          <CalendarDays size={15} /> {item.date ? tv(item.date) : t("news.tba")}
         </p>
-        <h3 className="mt-1.5 text-lg font-bold leading-snug group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</h3>
-        {item.description && <p className="mt-2 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">{item.description}</p>}
+        <h3 className="mt-1.5 text-lg font-bold leading-snug group-hover:text-brand-600 dark:group-hover:text-brand-400">{title}</h3>
+        {description && <p className="mt-2 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">{description}</p>}
         <div className="mt-auto flex items-center justify-between pt-4 text-sm">
           <span className="inline-flex min-w-0 items-center gap-1 text-gray-500 dark:text-gray-400">
-            <MapPin size={14} className="shrink-0" /> <span className="truncate">{item.location || "Cambodia"}</span>
+            <MapPin size={14} className="shrink-0" /> <span className="truncate">{item.location ? tv(item.location) : t("common.cambodia")}</span>
           </span>
           <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-gray-900 dark:text-white">
-            Details <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
+            {t("common.details")} <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
@@ -77,6 +83,8 @@ function EventCard({ item }) {
 }
 
 function FeaturedEvent({ item }) {
+  const { t, pick, tv } = useLang();
+  const description = pick(item, "description");
   return (
     <Link
       to={`/article/${item.id}`}
@@ -88,22 +96,22 @@ function FeaturedEvent({ item }) {
       <div className="flex flex-col justify-center p-6 text-white sm:p-10">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <StatusBadge item={item} />
-          <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold">Featured</span>
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold">{t("news.featured")}</span>
         </div>
-        <h2 className="text-2xl font-extrabold sm:text-3xl">{item.title}</h2>
+        <h2 className="text-2xl font-extrabold sm:text-3xl">{pick(item, "title")}</h2>
         <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/80">
           <span className="inline-flex items-center gap-1.5">
-            <CalendarDays size={15} /> {item.date}
+            <CalendarDays size={15} /> {item.date ? tv(item.date) : t("news.tba")}
           </span>
           {item.location && (
             <span className="inline-flex items-center gap-1.5">
-              <MapPin size={15} /> {item.location}
+              <MapPin size={15} /> {tv(item.location)}
             </span>
           )}
         </p>
-        {item.description && <p className="mt-4 line-clamp-3 text-white/85">{item.description}</p>}
+        {description && <p className="mt-4 line-clamp-3 text-white/85">{description}</p>}
         <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900">
-          Read more <ArrowRight size={16} />
+          {t("common.readMore")} <ArrowRight size={16} />
         </span>
       </div>
     </Link>
@@ -112,6 +120,7 @@ function FeaturedEvent({ item }) {
 
 export default function NewsEvents() {
   const { newsEvents, isLoading } = useNewsEvents();
+  const { t, num } = useLang();
   const [tab, setTab] = useState("all");
 
   const sorted = useMemo(() => {
@@ -138,28 +147,28 @@ export default function NewsEvents() {
     <>
       <PageHero
         image="/Water Festival.png"
-        eyebrow="News & events"
-        title="Festivals and events in Cambodia"
-        subtitle="Plan your trip around Khmer New Year, the Water Festival, Pchum Ben and other celebrations."
+        eyebrow={t("news.eyebrow")}
+        title={t("news.title")}
+        subtitle={t("news.subtitle")}
       />
 
       <Container className="py-10">
         <div className="mb-8 flex flex-wrap gap-2" role="tablist">
-          {TABS.map((t) => (
+          {TABS.map((tb) => (
             <button
-              key={t.key}
+              key={tb.key}
               type="button"
               role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
+              aria-selected={tab === tb.key}
+              onClick={() => setTab(tb.key)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                tab === t.key
+                tab === tb.key
                   ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
                   : "bg-white text-gray-700 ring-1 ring-gray-900/10 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:ring-white/10"
               }`}
             >
-              {t.label}
-              <span className="ml-1.5 opacity-60">{counts[t.key]}</span>
+              {t(tb.label)}
+              <span className="ml-1.5 opacity-60">{num(counts[tb.key])}</span>
             </button>
           ))}
         </div>
@@ -171,8 +180,8 @@ export default function NewsEvents() {
             ))}
           </div>
         ) : !featured ? (
-          <EmptyState icon={CalendarX2} title={tab === "now" ? "Nothing is happening right now" : "No events yet"}>
-            {tab === "all" ? "Check back soon for festivals and events." : "Try the other tabs to see more events."}
+          <EmptyState icon={CalendarX2} title={tab === "now" ? t("news.emptyNow") : t("news.empty")}>
+            {tab === "all" ? t("news.emptyAll") : t("news.emptyOther")}
           </EmptyState>
         ) : (
           <>

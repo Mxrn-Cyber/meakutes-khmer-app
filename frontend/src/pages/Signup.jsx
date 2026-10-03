@@ -4,16 +4,18 @@ import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
 import { buttonClass, inputClass } from "../components/ui";
+import { useLang } from "../i18n";
 
 const RULES = [
-  { test: (p) => p.length >= 8, label: "8+ characters" },
-  { test: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p), label: "Upper & lower case" },
-  { test: (p) => /\d/.test(p), label: "A number" },
+  { test: (p) => p.length >= 8, label: "auth.rule8" },
+  { test: (p) => /[a-z]/.test(p) && /[A-Z]/.test(p), label: "auth.ruleCase" },
+  { test: (p) => /\d/.test(p), label: "auth.ruleNumber" },
 ];
 
 export default function Signup() {
   const navigate = useNavigate();
   const { register, loginWithGoogle, updateProfile } = useAuth();
+  const { t, te } = useLang();
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -42,14 +44,14 @@ export default function Signup() {
 
   const validate = () => {
     const next = {};
-    if (!form.firstName.trim()) next.firstName = "First name is required";
-    if (!form.lastName.trim()) next.lastName = "Last name is required";
-    if (!form.email) next.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = "Enter a valid email address";
-    if (form.phone && !/^\+?[\d\s\-()]{6,}$/.test(form.phone)) next.phone = "Enter a valid phone number";
-    if (!RULES.every((r) => r.test(form.password))) next.password = "Password must meet all the rules below";
-    if (form.password !== form.confirmPassword) next.confirmPassword = "Passwords do not match";
-    if (!agree) next.terms = "Please accept the terms to continue";
+    if (!form.firstName.trim()) next.firstName = t("auth.firstRequired");
+    if (!form.lastName.trim()) next.lastName = t("auth.lastRequired");
+    if (!form.email) next.email = t("auth.emailRequired");
+    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = t("auth.emailInvalid");
+    if (form.phone && !/^\+?[\d\s\-()]{6,}$/.test(form.phone)) next.phone = t("auth.phoneInvalid");
+    if (!RULES.every((r) => r.test(form.password))) next.password = t("auth.rulesNotMet");
+    if (form.password !== form.confirmPassword) next.confirmPassword = t("auth.mismatch");
+    if (!agree) next.terms = t("auth.acceptTerms");
     return next;
   };
 
@@ -57,16 +59,16 @@ export default function Signup() {
     e.preventDefault();
     const next = validate();
     if (Object.keys(next).length) return setErrors(next);
-    if (!online) return setApiError("You are offline. Please check your connection.");
+    if (!online) return setApiError(t("common.offline"));
     setLoading(true);
     setApiError("");
     try {
       await register({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
       // Phone isn't part of registration; the backend keeps it on the profile.
       if (form.phone) await updateProfile({ phone: form.phone }).catch(() => {});
-      navigate("/", { state: { message: "Account created. Welcome!" } });
+      navigate("/", { state: { message: t("auth.created") } });
     } catch (err) {
-      setApiError(err.message || "Sign up failed. Please try again.");
+      setApiError(te(err, "auth.signupFailed"));
     } finally {
       setLoading(false);
     }
@@ -77,9 +79,9 @@ export default function Signup() {
     setApiError("");
     try {
       await loginWithGoogle(credential);
-      navigate("/", { state: { message: "Welcome to Meakutes-Khmer!" } });
+      navigate("/", { state: { message: t("auth.welcome") } });
     } catch (err) {
-      setApiError(err.message || "Google sign-up failed. Please try again.");
+      setApiError(te(err, "auth.googleSignupFailed"));
     } finally {
       setLoading(false);
     }
@@ -89,14 +91,14 @@ export default function Signup() {
 
   return (
     <AuthLayout
-      title="Create your account"
-      subtitle="It's free. Save places, write reviews and plan your trip."
+      title={t("auth.signupTitle")}
+      subtitle={t("auth.signupSubtitle")}
       image="/bayon-temple.png"
       footer={
         <>
-          Already have an account?{" "}
+          {t("auth.haveAccount")}{" "}
           <Link to="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
-            Log in
+            {t("auth.login")}
           </Link>
         </>
       }
@@ -104,24 +106,24 @@ export default function Signup() {
       <Alert>{apiError}</Alert>
 
       <GoogleButton text="signup_with" onCredential={google} />
-      <Divider>or with email</Divider>
+      <Divider>{t("auth.orEmail")}</Divider>
 
       <form onSubmit={submit} noValidate className="space-y-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="First name" id="firstName" error={errors.firstName}>
+          <Field label={t("auth.firstName")} id="firstName" error={errors.firstName}>
             <input id="firstName" name="firstName" autoComplete="given-name" value={form.firstName} onChange={change} className={inputClass} />
           </Field>
-          <Field label="Last name" id="lastName" error={errors.lastName}>
+          <Field label={t("auth.lastName")} id="lastName" error={errors.lastName}>
             <input id="lastName" name="lastName" autoComplete="family-name" value={form.lastName} onChange={change} className={inputClass} />
           </Field>
         </div>
-        <Field label="Email" id="email" error={errors.email}>
+        <Field label={t("auth.email")} id="email" error={errors.email}>
           <input id="email" name="email" type="email" autoComplete="email" value={form.email} onChange={change} className={inputClass} placeholder="you@example.com" />
         </Field>
-        <Field label="Phone (optional)" id="phone" error={errors.phone}>
+        <Field label={t("auth.phoneOptional")} id="phone" error={errors.phone}>
           <input id="phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={change} className={inputClass} placeholder="+855 12 345 678" />
         </Field>
-        <Field label="Password" id="password" error={errors.password}>
+        <Field label={t("auth.password")} id="password" error={errors.password}>
           <div className="relative">
             <input
               id="password"
@@ -136,7 +138,7 @@ export default function Signup() {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="absolute inset-y-0 right-0 grid w-12 place-items-center text-gray-400 hover:text-gray-600"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -156,13 +158,13 @@ export default function Signup() {
               const ok = r.test(form.password);
               return (
                 <li key={r.label} className={`inline-flex items-center gap-1 ${ok ? "text-emerald-600" : "text-gray-500 dark:text-gray-400"}`}>
-                  <Check size={13} className={ok ? "" : "opacity-30"} /> {r.label}
+                  <Check size={13} className={ok ? "" : "opacity-30"} /> {t(r.label)}
                 </li>
               );
             })}
           </ul>
         </Field>
-        <Field label="Confirm password" id="confirmPassword" error={errors.confirmPassword}>
+        <Field label={t("auth.confirmPassword")} id="confirmPassword" error={errors.confirmPassword}>
           <input
             id="confirmPassword"
             name="confirmPassword"
@@ -185,21 +187,21 @@ export default function Signup() {
               className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-600"
             />
             <span>
-              I agree to the{" "}
+              {t("auth.agreeA")}
               <Link to="/terms" className="font-medium text-brand-600 hover:underline">
-                Terms of use
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="font-medium text-brand-600 hover:underline">
-                Privacy policy
+                {t("auth.terms")}
               </Link>
-              .
+              {t("auth.and")}
+              <Link to="/privacy" className="font-medium text-brand-600 hover:underline">
+                {t("auth.privacy")}
+              </Link>
+              {t("auth.agreeB")}
             </span>
           </label>
           {errors.terms && <p className="mt-1.5 text-sm text-rose-600">{errors.terms}</p>}
         </div>
         <button type="submit" disabled={loading} className={`${buttonClass.primary} w-full py-3`}>
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? t("auth.creating") : t("auth.create")}
         </button>
       </form>
     </AuthLayout>

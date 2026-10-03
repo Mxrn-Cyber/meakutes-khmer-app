@@ -4,6 +4,7 @@ import { Search, MapPin, CalendarDays, Star, Map as MapIcon, PartyPopper, ArrowR
 import { useDestinations } from "../hooks/useDestinations";
 import { useNewsEvents } from "../hooks/useNewsEvents";
 import { useAuth } from "../context/AuthContext";
+import { useLang } from "../i18n";
 import {
   Container,
   SectionHeading,
@@ -13,22 +14,19 @@ import {
   buttonClass,
 } from "../components/ui";
 
-const SLIDES = [
-  { src: "/angkor-morning.png", caption: "Angkor Wat at sunrise, Siem Reap" },
-  { src: "/bayon-temple.png", caption: "Bayon Temple, Siem Reap" },
-  { src: "/palace.png", caption: "Royal Palace, Phnom Penh" },
-  { src: "/Landscape.png", caption: "Countryside of Cambodia" },
-  { src: "/monk-front.png", caption: "Monks at a temple" },
-];
+// Captions are in home.slides (en.js / km.js), in the same order.
+const SLIDES = ["/angkor-morning.png", "/bayon-temple.png", "/palace.png", "/Landscape.png", "/monk-front.png"];
+const FEATURE_ICONS = [Star, MapIcon, PartyPopper];
 
 function Hero({ placeCount, provinceCount, eventCount }) {
   const [slide, setSlide] = useState(0);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const { t, num } = useLang();
 
   useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
+    return () => clearInterval(timer);
   }, []);
 
   const submit = (e) => {
@@ -39,10 +37,10 @@ function Hero({ placeCount, provinceCount, eventCount }) {
 
   return (
     <section className="relative isolate -mt-16 flex min-h-[640px] items-end overflow-hidden bg-gray-900 pb-16 pt-32 sm:min-h-[720px] sm:pb-24">
-      {SLIDES.map((s, i) => (
+      {SLIDES.map((src, i) => (
         <img
-          key={s.src}
-          src={s.src}
+          key={src}
+          src={src}
           alt=""
           className={`absolute inset-0 -z-20 h-full w-full object-cover transition-opacity duration-[1500ms] ${
             i === slide ? "opacity-100" : "opacity-0"
@@ -54,35 +52,37 @@ function Hero({ placeCount, provinceCount, eventCount }) {
       <Container>
         <div className="max-w-3xl">
           <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white backdrop-blur">
-            <MapPin size={14} /> Kingdom of Cambodia
+            <MapPin size={14} /> {t("home.kingdom")}
           </p>
           <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-6xl">
-            Find your next <span className="text-amber-300">dream place</span> in Cambodia
+            {t("home.titleA")}
+            <span className="text-amber-300">{t("home.titleHighlight")}</span>
+            {t("home.titleB")}
           </h1>
-          <p className="mt-3 font-khmer text-lg text-white/90 sm:text-xl">ស្វែងរកទីកន្លែងក្នុងក្តីស្រមៃរបស់អ្នក</p>
+          <p className="mt-3 text-lg text-white/90 sm:text-xl">{t("home.subtitle")}</p>
 
           <form onSubmit={submit} className="mt-8 flex max-w-xl items-center gap-2 rounded-full bg-white p-1.5 shadow-lift">
             <Search size={20} className="ml-3 shrink-0 text-gray-400" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search temples, beaches, provinces…"
-              aria-label="Search places"
+              placeholder={t("home.searchPlaceholder")}
+              aria-label={t("home.searchLabel")}
               className="min-w-0 flex-1 border-0 bg-transparent px-1 py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
             />
             <button type="submit" className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
-              Search
+              {t("home.search")}
             </button>
           </form>
 
           <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-white">
             {[
-              [placeCount, "places to visit"],
-              [provinceCount, "provinces"],
-              [eventCount, "festivals & events"],
+              [placeCount, t("home.statPlaces")],
+              [provinceCount, t("home.statProvinces")],
+              [eventCount, t("home.statEvents")],
             ].map(([n, label]) => (
               <div key={label} className="flex items-baseline gap-2">
-                <dt className="text-2xl font-bold">{n || "–"}</dt>
+                <dt className="text-2xl font-bold">{n ? num(n) : "–"}</dt>
                 <dd className="text-sm text-white/80">{label}</dd>
               </div>
             ))}
@@ -90,18 +90,18 @@ function Hero({ placeCount, provinceCount, eventCount }) {
         </div>
 
         <div className="mt-10 flex items-center justify-between gap-4">
-          <div className="flex gap-2" role="tablist" aria-label="Photos">
-            {SLIDES.map((s, i) => (
+          <div className="flex gap-2" role="tablist" aria-label={t("home.photos")}>
+            {SLIDES.map((src, i) => (
               <button
-                key={s.src}
+                key={src}
                 type="button"
                 onClick={() => setSlide(i)}
-                aria-label={`Show photo ${i + 1}`}
+                aria-label={t("home.showPhoto", { n: i + 1 })}
                 className={`h-1.5 rounded-full transition-all ${i === slide ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70"}`}
               />
             ))}
           </div>
-          <p className="hidden text-xs text-white/70 sm:block">{SLIDES[slide].caption}</p>
+          <p className="hidden text-xs text-white/70 sm:block">{t("home.slides")[slide]}</p>
         </div>
       </Container>
     </section>
@@ -109,6 +109,7 @@ function Hero({ placeCount, provinceCount, eventCount }) {
 }
 
 function ProvinceTiles({ places }) {
+  const { t, tv } = useLang();
   const provinces = useMemo(() => {
     const map = new Map();
     for (const p of places) {
@@ -134,10 +135,8 @@ function ProvinceTiles({ places }) {
           <img src={p.image} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-90" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="flex h-full flex-col justify-end p-4 text-white">
-            <p className={`font-bold ${i === 0 ? "text-2xl" : "text-base sm:text-lg"}`}>{p.name}</p>
-            <p className="text-sm text-white/80">
-              {p.count} {p.count === 1 ? "place" : "places"}
-            </p>
+            <p className={`font-bold ${i === 0 ? "text-2xl" : "text-base sm:text-lg"}`}>{tv(p.name)}</p>
+            <p className="text-sm text-white/80">{t("common.places", { count: p.count })}</p>
           </div>
         </Link>
       ))}
@@ -146,6 +145,7 @@ function ProvinceTiles({ places }) {
 }
 
 function EventCard({ event }) {
+  const { pick, tv } = useLang();
   return (
     <Link
       to={`/article/${event.id}`}
@@ -157,13 +157,13 @@ function EventCard({ event }) {
       <div className="min-w-0 py-1">
         {event.date && (
           <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
-            <CalendarDays size={13} /> {event.date}
+            <CalendarDays size={13} /> {tv(event.date)}
           </p>
         )}
-        <h3 className="mt-1 line-clamp-2 font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white">{event.title}</h3>
+        <h3 className="mt-1 line-clamp-2 font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white">{pick(event, "title")}</h3>
         {event.location && (
           <p className="mt-1 flex items-center gap-1 truncate text-sm text-gray-500 dark:text-gray-400">
-            <MapPin size={13} /> {event.location}
+            <MapPin size={13} /> {tv(event.location)}
           </p>
         )}
       </div>
@@ -175,6 +175,7 @@ export default function Home() {
   const { destinations, isLoading } = useDestinations({ status: "published" });
   const { newsEvents } = useNewsEvents();
   const { isAuthenticated } = useAuth();
+  const { t } = useLang();
 
   const topRated = useMemo(
     () =>
@@ -191,10 +192,10 @@ export default function Home() {
 
       <Container className="py-16 sm:py-20">
         <SectionHeading
-          eyebrow="Top rated"
-          title="Places travellers love"
-          subtitle="Rated and reviewed by visitors to Meakutes-Khmer."
-          action={<ViewAllLink to="/popular">See all popular places</ViewAllLink>}
+          eyebrow={t("home.topEyebrow")}
+          title={t("home.topTitle")}
+          subtitle={t("home.topSubtitle")}
+          action={<ViewAllLink to="/popular">{t("home.topAll")}</ViewAllLink>}
         />
         <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {(isLoading ? Array.from({ length: 4 }, (_, i) => ({ id: `s${i}` })) : topRated).map((trip) => (
@@ -208,10 +209,10 @@ export default function Home() {
       <section className="bg-brand-50/60 py-16 dark:bg-gray-900/40 sm:py-20">
         <Container>
           <SectionHeading
-            eyebrow="Explore by province"
-            title="Where do you want to go?"
-            subtitle="From the temples of Siem Reap to the coast of Kep and the hills of Mondulkiri."
-            action={<ViewAllLink to="/discover">Browse all places</ViewAllLink>}
+            eyebrow={t("home.provEyebrow")}
+            title={t("home.provTitle")}
+            subtitle={t("home.provSubtitle")}
+            action={<ViewAllLink to="/discover">{t("home.provAll")}</ViewAllLink>}
           />
           <ProvinceTiles places={destinations} />
         </Container>
@@ -220,9 +221,9 @@ export default function Home() {
       {newsEvents.length > 0 && (
         <Container className="py-16 sm:py-20">
           <SectionHeading
-            eyebrow="Festivals & events"
-            title="What's happening in Cambodia"
-            action={<ViewAllLink to="/news">All events</ViewAllLink>}
+            eyebrow={t("home.eventsEyebrow")}
+            title={t("home.eventsTitle")}
+            action={<ViewAllLink to="/news">{t("home.eventsAll")}</ViewAllLink>}
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {newsEvents.slice(0, 6).map((e) => (
@@ -235,11 +236,9 @@ export default function Home() {
       <section className="bg-brand-50/60 py-16 dark:bg-gray-900/40 sm:py-20">
         <Container>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {[
-              { Icon: Star, title: "Honest reviews", text: "Read ratings and reviews from real visitors before you go." },
-              { Icon: MapIcon, title: "Maps & tips", text: "See each place on the map with the best time to visit and how to get in." },
-              { Icon: PartyPopper, title: "Festivals", text: "Plan around Khmer New Year, the Water Festival, Pchum Ben and more." },
-            ].map(({ Icon, title, text }) => (
+            {t("home.features").map(({ title, text }, i) => {
+              const Icon = FEATURE_ICONS[i];
+              return (
               <div key={title} className="rounded-2xl p-6 ring-1 ring-gray-900/5 dark:ring-white/10">
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300">
                   <Icon size={22} />
@@ -247,7 +246,8 @@ export default function Home() {
                 <h3 className="mt-4 font-semibold">{title}</h3>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{text}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </Container>
       </section>
@@ -258,32 +258,23 @@ export default function Home() {
             <img src="/angkor-wat.png" alt="Angkor Wat" loading="lazy" className="aspect-[4/3] w-full rounded-3xl object-cover shadow-lift" />
             <div className="absolute -bottom-5 right-5 rounded-2xl bg-white px-5 py-4 shadow-lift dark:bg-gray-900">
               <p className="text-2xl font-bold text-brand-600">ITE G8</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Final-year project</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t("home.project")}</p>
             </div>
           </div>
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Our story</p>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Helping Cambodia's tourism recover</h2>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">{t("home.storyEyebrow")}</p>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("home.storyTitle")}</h2>
             <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-400">
-              <p>
-                Cambodia boasts a variety of tourist attractions, from the awe-inspiring temples built by Khmer
-                ancestors to modern resorts, mountain landscapes, diverse wildlife and some of the most beautiful
-                beaches in Asia. The COVID-19 pandemic caused a significant decline in tourism, impacting local
-                livelihoods.
-              </p>
-              <p>
-                To address this, students of the Department of Information Technology Engineering (8th generation),
-                under the guidance of our advisor, Ky Sok Lay, created Meakutes-Khmer to promote new and beautiful
-                tourist sites across Cambodia for Cambodians and foreign visitors alike.
-              </p>
+              <p>{t("home.story1")}</p>
+              <p>{t("home.story2")}</p>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/about" className={buttonClass.primary}>
-                Read our story <ArrowRight size={16} />
+                {t("home.readStory")} <ArrowRight size={16} />
               </Link>
               {!isAuthenticated && (
                 <Link to="/signup" className={buttonClass.secondary}>
-                  Create a free account
+                  {t("home.createAccount")}
                 </Link>
               )}
             </div>

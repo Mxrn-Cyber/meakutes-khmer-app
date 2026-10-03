@@ -3,11 +3,13 @@ import { Plus, Pencil, Trash2, X, Image as ImageIcon } from "lucide-react";
 import { api } from "../api/client";
 import { useConfirm, useToast } from "../components/Feedback";
 import LocationPicker from "./LocationPicker";
+import { PROVINCES } from "../i18n/km";
 
 const STATUS_OPTIONS = ["draft", "published"];
 
 const emptyForm = {
   name: "",
+  name_km: "",
   province: "",
   latitude: "",
   longitude: "",
@@ -16,7 +18,9 @@ const emptyForm = {
   accessibility: "",
   best_time: "",
   description: "",
+  description_km: "",
   article: "",
+  article_km: "",
   status: "draft",
   category_ids: [],
   tag_ids: [],
@@ -26,6 +30,7 @@ const emptyForm = {
 function toFormState(destination) {
   return {
     name: destination.name || "",
+    name_km: destination.name_km || "",
     province: destination.province || "",
     latitude: destination.latitude ?? "",
     longitude: destination.longitude ?? "",
@@ -34,7 +39,9 @@ function toFormState(destination) {
     accessibility: destination.accessibility || "",
     best_time: destination.best_time || "",
     description: destination.description || "",
+    description_km: destination.description_km || "",
     article: destination.article || "",
+    article_km: destination.article_km || "",
     status: destination.status || "draft",
     category_ids: (destination.categories || []).map((c) => c.id),
     tag_ids: (destination.tags || []).map((t) => t.id),
@@ -169,10 +176,19 @@ const AdminDestinations = () => {
             </Field>
             <Field label="Province">
               <input
+                list="province-options"
                 value={form.province}
                 onChange={(e) => setForm({ ...form, province: e.target.value })}
                 className={inputClass}
+                placeholder="Pick from the list, in English"
               />
+              <datalist id="province-options">
+                {Object.entries(PROVINCES).map(([en, kh]) => (
+                  <option key={en} value={en}>
+                    {kh}
+                  </option>
+                ))}
+              </datalist>
             </Field>
             <Field label="Latitude">
               <input
@@ -265,6 +281,42 @@ const AdminDestinations = () => {
               className={inputClass}
             />
           </Field>
+
+          <fieldset className="space-y-4 rounded-2xl bg-brand-50/60 p-4 ring-1 ring-brand-100 dark:bg-gray-800/40 dark:ring-white/10">
+            <legend className="px-1 text-sm font-semibold text-gray-900 dark:text-white">
+              Khmer version <span className="font-normal text-gray-500 dark:text-gray-400">· ភាសាខ្មែរ</span>
+            </legend>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Shown when visitors switch the site to Khmer. Leave a field empty to show the English text instead.
+            </p>
+            <Field label="Name in Khmer">
+              <input
+                lang="km"
+                value={form.name_km}
+                onChange={(e) => setForm({ ...form, name_km: e.target.value })}
+                className={inputClass}
+                placeholder="ឧ. ប្រាសាទអង្គរវត្ត"
+              />
+            </Field>
+            <Field label="Short description in Khmer">
+              <textarea
+                lang="km"
+                rows={3}
+                value={form.description_km}
+                onChange={(e) => setForm({ ...form, description_km: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Full article in Khmer">
+              <textarea
+                lang="km"
+                rows={8}
+                value={form.article_km}
+                onChange={(e) => setForm({ ...form, article_km: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+          </fieldset>
 
           <Field label="Categories">
             <CheckboxGroup items={categories} selected={form.category_ids} onToggle={(id) => toggleInArray("category_ids", id)} />
@@ -359,7 +411,10 @@ const AdminDestinations = () => {
                   ) : (
                     <ImageIcon size={16} className="text-gray-300" />
                   )}
-                  {d.name}
+                  <span className="min-w-0">
+                    <span className="block">{d.name}</span>
+                    {d.name_km && <span lang="km" className="block text-xs text-gray-500 dark:text-gray-400">{d.name_km}</span>}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{d.province || "-"}</td>
                 <td className="px-4 py-3">

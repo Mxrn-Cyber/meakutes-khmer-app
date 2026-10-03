@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { useLang } from "../i18n";
 
 // Styled replacements for window.confirm() and alert().
 //   const confirm = useConfirm();  if (!(await confirm({ title, message, danger: true }))) return;
@@ -8,6 +9,7 @@ import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 const FeedbackContext = createContext(null);
 
 export function FeedbackProvider({ children }) {
+  const { t } = useLang();
   const [dialog, setDialog] = useState(null);
   const [toasts, setToasts] = useState([]);
   const resolver = useRef(null);
@@ -17,14 +19,14 @@ export function FeedbackProvider({ children }) {
       new Promise((resolve) => {
         resolver.current = resolve;
         setDialog({
-          title: "Are you sure?",
-          confirmLabel: "Confirm",
-          cancelLabel: "Cancel",
+          title: t("common.areYouSure"),
+          confirmLabel: t("common.confirm"),
+          cancelLabel: t("common.cancel"),
           danger: false,
           ...(typeof opts === "string" ? { message: opts } : opts),
         });
       }),
-    []
+    [t]
   );
 
   const close = (value) => {
@@ -120,6 +122,7 @@ const TOAST_STYLE = {
 };
 
 function Toast({ type, message, onClose }) {
+  const { t } = useLang();
   const { Icon, cls } = TOAST_STYLE[type] || TOAST_STYLE.info;
   return (
     <div
@@ -128,7 +131,7 @@ function Toast({ type, message, onClose }) {
     >
       <Icon size={20} className={`mt-px shrink-0 ${cls}`} />
       <p className="flex-1 text-gray-800 dark:text-gray-100">{message}</p>
-      <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Dismiss">
+      <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label={t("common.dismiss")}>
         <X size={16} />
       </button>
     </div>

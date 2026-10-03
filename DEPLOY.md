@@ -118,6 +118,20 @@ source venv/bin/activate
 python seed/make_admin.py laothomorn@gmail.com
 ```
 
+## 8. Khmer names for the starter content
+
+After the Khmer update is deployed (Render runs the migration by itself), fill in the Khmer
+names of the 20 starter places and 6 festivals:
+
+```
+cd ~/Desktop/meakutes-khmer-app/backend
+source venv/bin/activate
+ENV_FILE=.env.cloud python seed/khmer_names.py
+```
+
+It only fills empty Khmer fields, so it is safe to run again. Khmer descriptions are added
+in Admin > Places and Admin > News, in the "Khmer version" box.
+
 ---
 
 ## Updating later

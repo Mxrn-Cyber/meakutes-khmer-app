@@ -70,12 +70,14 @@ export const api = {
 
   // ---- categories & tags ----
   listCategories: () => request("/api/categories"),
-  createCategory: (name) => request("/api/categories", { method: "POST", body: { name } }),
-  renameCategory: (id, name) => request(`/api/categories/${id}`, { method: "PUT", body: { name } }),
+  createCategory: (name, nameKm) => request("/api/categories", { method: "POST", body: { name, name_km: nameKm || null } }),
+  renameCategory: (id, name, nameKm) =>
+    request(`/api/categories/${id}`, { method: "PUT", body: { name, name_km: nameKm || null } }),
   deleteCategory: (id) => request(`/api/categories/${id}`, { method: "DELETE" }),
   listTags: () => request("/api/tags"),
-  createTag: (name) => request("/api/tags", { method: "POST", body: { name } }),
-  renameTag: (id, name) => request(`/api/tags/${id}`, { method: "PUT", body: { name } }),
+  createTag: (name, nameKm) => request("/api/tags", { method: "POST", body: { name, name_km: nameKm || null } }),
+  renameTag: (id, name, nameKm) =>
+    request(`/api/tags/${id}`, { method: "PUT", body: { name, name_km: nameKm || null } }),
   deleteTag: (id) => request(`/api/tags/${id}`, { method: "DELETE" }),
 
   // ---- news & events ----

@@ -24,7 +24,7 @@ def build_taxonomy_router(model, prefix: str, tag: str) -> APIRouter:
         db: Session = Depends(get_db),
         _: User = Depends(require_role("admin", "editor")),
     ):
-        row = model(name=payload.name, slug=unique_slug(db, model, payload.name))
+        row = model(name=payload.name, name_km=(payload.name_km or None), slug=unique_slug(db, model, payload.name))
         db.add(row)
         db.commit()
         db.refresh(row)
@@ -41,6 +41,8 @@ def build_taxonomy_router(model, prefix: str, tag: str) -> APIRouter:
         if not row:
             raise HTTPException(status.HTTP_404_NOT_FOUND, f"{tag[:-1].title()} not found")
         row.name = payload.name
+        if "name_km" in payload.model_fields_set:  # older clients send only the name
+            row.name_km = payload.name_km or None
         row.slug = unique_slug(db, model, payload.name, exclude_id=item_id)
         db.commit()
         db.refresh(row)

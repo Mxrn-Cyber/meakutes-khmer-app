@@ -9,8 +9,10 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
   const toast = useToast();
   const [items, setItems] = useState(list);
   const [newName, setNewName] = useState("");
+  const [newNameKm, setNewNameKm] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState("");
+  const [editingNameKm, setEditingNameKm] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => setItems(list), [list]);
@@ -20,9 +22,10 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
     if (!newName.trim()) return;
     setError("");
     try {
-      const created = await onCreate(newName.trim());
+      const created = await onCreate(newName.trim(), newNameKm.trim());
       setItems((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
       setNewName("");
+      setNewNameKm("");
     } catch (err) {
       setError(err.message || "Failed to create");
     }
@@ -31,13 +34,14 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
   const startEdit = (item) => {
     setEditingId(item.id);
     setEditingName(item.name);
+    setEditingNameKm(item.name_km || "");
   };
 
   const saveEdit = async (id) => {
     if (!editingName.trim()) return;
     setError("");
     try {
-      const updated = await onRename(id, editingName.trim());
+      const updated = await onRename(id, editingName.trim(), editingNameKm.trim());
       setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
       setEditingId(null);
     } catch (err) {
@@ -62,11 +66,20 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
 
       {error && <p className="mb-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>}
 
-      <form onSubmit={handleCreate} className="flex gap-2 mb-4">
+      <form onSubmit={handleCreate} className="flex flex-wrap gap-2 mb-4 sm:flex-nowrap">
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder={`New ${title === "Categories" ? "category" : "tag"} name`}
+          aria-label="Name in English"
+          className="min-w-0 flex-1 rounded-xl border-0 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
+        />
+        <input
+          lang="km"
+          value={newNameKm}
+          onChange={(e) => setNewNameKm(e.target.value)}
+          placeholder="ឈ្មោះជាភាសាខ្មែរ (optional)"
+          aria-label="Name in Khmer"
           className="min-w-0 flex-1 rounded-xl border-0 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
         />
         <button type="submit" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-600 text-white shadow-sm hover:bg-brand-700" aria-label="Add" title="Add">
@@ -81,14 +94,28 @@ function TaxonomyPanel({ title, list, onCreate, onRename, onDelete, canDelete })
             className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 dark:bg-gray-800/60"
           >
             {editingId === item.id ? (
-              <input
-                autoFocus
-                value={editingName}
-                onChange={(e) => setEditingName(e.target.value)}
-                className="mr-2 min-w-0 flex-1 rounded-lg border-0 bg-white px-2.5 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-brand-600 dark:bg-gray-900 dark:text-white dark:ring-gray-700"
-              />
+              <div className="mr-2 flex min-w-0 flex-1 flex-col gap-1.5">
+                <input
+                  autoFocus
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  aria-label="Name in English"
+                  className="min-w-0 rounded-lg border-0 bg-white px-2.5 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-brand-600 dark:bg-gray-900 dark:text-white dark:ring-gray-700"
+                />
+                <input
+                  lang="km"
+                  value={editingNameKm}
+                  onChange={(e) => setEditingNameKm(e.target.value)}
+                  placeholder="ឈ្មោះជាភាសាខ្មែរ"
+                  aria-label="Name in Khmer"
+                  className="min-w-0 rounded-lg border-0 bg-white px-2.5 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-brand-600 dark:bg-gray-900 dark:text-white dark:ring-gray-700"
+                />
+              </div>
             ) : (
-              <span className="text-gray-800 dark:text-gray-200">{item.name}</span>
+              <span className="min-w-0 text-gray-800 dark:text-gray-200">
+                {item.name}
+                {item.name_km && <span lang="km" className="ml-2 text-sm text-gray-500 dark:text-gray-400">{item.name_km}</span>}
+              </span>
             )}
             <div className="flex items-center gap-1">
               {editingId === item.id ? (
@@ -142,16 +169,16 @@ const AdminTaxonomy = () => {
         <TaxonomyPanel
           title="Categories"
           list={categories}
-          onCreate={(name) => api.createCategory(name)}
-          onRename={(id, name) => api.renameCategory(id, name)}
+          onCreate={(name, nameKm) => api.createCategory(name, nameKm)}
+          onRename={(id, name, nameKm) => api.renameCategory(id, name, nameKm)}
           onDelete={(id) => api.deleteCategory(id)}
           canDelete={isAdmin}
         />
         <TaxonomyPanel
           title="Tags"
           list={tags}
-          onCreate={(name) => api.createTag(name)}
-          onRename={(id, name) => api.renameTag(id, name)}
+          onCreate={(name, nameKm) => api.createTag(name, nameKm)}
+          onRename={(id, name, nameKm) => api.renameTag(id, name, nameKm)}
           onDelete={(id) => api.deleteTag(id)}
           canDelete={isAdmin}
         />

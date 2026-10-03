@@ -8,6 +8,7 @@ from app.schemas.media import MediaOut
 class TaxonomyOut(BaseModel):
     id: int
     name: str
+    name_km: str | None = None
     slug: str
 
     model_config = {"from_attributes": True}
@@ -15,10 +16,12 @@ class TaxonomyOut(BaseModel):
 
 class TaxonomyCreate(BaseModel):
     name: str
+    name_km: str | None = None
 
 
 class DestinationBase(BaseModel):
     name: str
+    name_km: str | None = None
     province: str | None = None
     latitude: float | None = None
     longitude: float | None = None
@@ -27,7 +30,9 @@ class DestinationBase(BaseModel):
     accessibility: str | None = None
     best_time: str | None = None
     description: str | None = None
+    description_km: str | None = None
     article: str | None = None
+    article_km: str | None = None
     status: str = "draft"
 
 
@@ -39,6 +44,7 @@ class DestinationCreate(DestinationBase):
 
 class DestinationUpdate(BaseModel):
     name: str | None = None
+    name_km: str | None = None
     province: str | None = None
     latitude: float | None = None
     longitude: float | None = None
@@ -47,7 +53,9 @@ class DestinationUpdate(BaseModel):
     accessibility: str | None = None
     best_time: str | None = None
     description: str | None = None
+    description_km: str | None = None
     article: str | None = None
+    article_km: str | None = None
     status: str | None = None
     category_ids: list[int] | None = None
     tag_ids: list[int] | None = None

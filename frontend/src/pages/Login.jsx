@@ -4,11 +4,13 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { AuthLayout, GoogleButton, Divider, Field, Alert } from "../components/AuthLayout";
 import { buttonClass, inputClass } from "../components/ui";
+import { useLang } from "../i18n";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loginWithGoogle } = useAuth();
+  const { t, te } = useLang();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -37,9 +39,9 @@ export default function Login() {
 
   const validate = () => {
     const next = {};
-    if (!form.email) next.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = "Enter a valid email address";
-    if (!form.password) next.password = "Password is required";
+    if (!form.email) next.email = t("auth.emailRequired");
+    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = t("auth.emailInvalid");
+    if (!form.password) next.password = t("auth.passwordRequired");
     return next;
   };
 
@@ -47,14 +49,14 @@ export default function Login() {
     e.preventDefault();
     const next = validate();
     if (Object.keys(next).length) return setErrors(next);
-    if (!online) return setApiError("You are offline. Please check your connection.");
+    if (!online) return setApiError(t("common.offline"));
     setLoading(true);
     setApiError("");
     try {
       await login(form.email, form.password);
-      navigate("/", { state: { message: "Welcome back!" } });
+      navigate("/", { state: { message: t("auth.welcomeBack") } });
     } catch (err) {
-      setApiError(err.message || "Login failed. Please try again.");
+      setApiError(te(err, "auth.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -65,9 +67,9 @@ export default function Login() {
     setApiError("");
     try {
       await loginWithGoogle(credential);
-      navigate("/", { state: { message: "Welcome back!" } });
+      navigate("/", { state: { message: t("auth.welcomeBack") } });
     } catch (err) {
-      setApiError(err.message || "Google sign-in failed. Please try again.");
+      setApiError(te(err, "auth.googleFailed"));
     } finally {
       setLoading(false);
     }
@@ -75,13 +77,13 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Log in to save places, write reviews and join the conversation."
+      title={t("auth.loginTitle")}
+      subtitle={t("auth.loginSubtitle")}
       footer={
         <>
-          New to Meakutes-Khmer?{" "}
+          {t("auth.newHere")}{" "}
           <Link to="/signup" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
-            Create an account
+            {t("auth.createAccount")}
           </Link>
         </>
       }
@@ -90,10 +92,10 @@ export default function Login() {
       <Alert>{apiError}</Alert>
 
       <GoogleButton text="signin_with" onCredential={google} />
-      <Divider>or with email</Divider>
+      <Divider>{t("auth.orEmail")}</Divider>
 
       <form onSubmit={submit} noValidate className="space-y-5">
-        <Field label="Email" id="email" error={errors.email}>
+        <Field label={t("auth.email")} id="email" error={errors.email}>
           <input
             id="email"
             name="email"
@@ -105,7 +107,7 @@ export default function Login() {
             placeholder="you@example.com"
           />
         </Field>
-        <Field label="Password" id="password" error={errors.password}>
+        <Field label={t("auth.password")} id="password" error={errors.password}>
           <div className="relative">
             <input
               id="password"
@@ -115,20 +117,20 @@ export default function Login() {
               value={form.password}
               onChange={change}
               className={`${inputClass} pr-12`}
-              placeholder="Your password"
+              placeholder={t("auth.yourPassword")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="absolute inset-y-0 right-0 grid w-12 place-items-center text-gray-400 hover:text-gray-600"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
         </Field>
         <button type="submit" disabled={loading} className={`${buttonClass.primary} w-full py-3`}>
-          {loading ? "Logging in…" : "Log in"}
+          {loading ? t("auth.loggingIn") : t("auth.login")}
         </button>
       </form>
     </AuthLayout>

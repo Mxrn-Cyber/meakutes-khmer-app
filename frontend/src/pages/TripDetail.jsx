@@ -24,10 +24,12 @@ import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
 import { Container, PlaceCard, Stars, RatingPill, buttonClass } from "../components/ui";
+import { useLang } from "../i18n";
 
 const mapOptions = { zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true };
 
 function Gallery({ images, name, onOpen }) {
+  const { t } = useLang();
   const shown = images.slice(0, 5);
   if (shown.length <= 1) {
     return (
@@ -66,13 +68,14 @@ function Gallery({ images, name, onOpen }) {
         onClick={() => onOpen(0)}
         className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-gray-900 shadow-lift hover:bg-white"
       >
-        <Images size={16} /> {images.length} photos
+        <Images size={16} /> {t("common.photos", { count: images.length })}
       </button>
     </div>
   );
 }
 
 function Lightbox({ images, index, onClose, onIndex }) {
+  const { t, num } = useLang();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -91,9 +94,9 @@ function Lightbox({ images, index, onClose, onIndex }) {
     <div className="fixed inset-0 z-[60] flex flex-col bg-black/95" role="dialog" aria-modal="true">
       <div className="flex items-center justify-between p-4 text-white">
         <span className="text-sm">
-          {index + 1} / {images.length}
+          {num(index + 1)} / {num(images.length)}
         </span>
-        <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-white/10" aria-label="Close photos">
+        <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-white/10" aria-label={t("trip.photosClose")}>
           <X size={24} />
         </button>
       </div>
@@ -105,7 +108,7 @@ function Lightbox({ images, index, onClose, onIndex }) {
               type="button"
               onClick={() => onIndex((index - 1 + images.length) % images.length)}
               className="absolute left-3 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-              aria-label="Previous photo"
+              aria-label={t("trip.prevPhoto")}
             >
               <ChevronLeft size={24} />
             </button>
@@ -113,7 +116,7 @@ function Lightbox({ images, index, onClose, onIndex }) {
               type="button"
               onClick={() => onIndex((index + 1) % images.length)}
               className="absolute right-3 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-              aria-label="Next photo"
+              aria-label={t("trip.nextPhoto")}
             >
               <ChevronRight size={24} />
             </button>
@@ -142,6 +145,7 @@ function InfoTile({ icon: Icon, label, value }) {
 function ReviewsSection({ destinationId }) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { t, te, num, formatDate } = useLang();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(5);
@@ -185,9 +189,9 @@ function ReviewsSection({ destinationId }) {
     try {
       await api.createReview({ destination_id: destinationId, rating, comment });
       await load();
-      setMessage(mine ? "Your review was updated." : "Thanks! Your review was posted.");
+      setMessage(mine ? t("trip.updated") : t("trip.posted"));
     } catch (err) {
-      setMessage(err.message || "Could not save your review.");
+      setMessage(te(err, "trip.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -195,13 +199,13 @@ function ReviewsSection({ destinationId }) {
 
   return (
     <section id="reviews" className="scroll-mt-24">
-      <h2 className="text-xl font-bold sm:text-2xl">Reviews</h2>
+      <h2 className="text-xl font-bold sm:text-2xl">{t("trip.reviews")}</h2>
       <div className="mt-5 grid gap-6 md:grid-cols-[220px_1fr]">
         <div className="rounded-2xl bg-white p-5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
-          <p className="text-4xl font-extrabold">{summary.avg ? summary.avg.toFixed(1) : "–"}</p>
+          <p className="text-4xl font-extrabold">{summary.avg ? num(summary.avg.toFixed(1)) : "–"}</p>
           <Stars value={summary.avg} size={16} className="mt-1" />
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+            {t("common.reviews", { count: reviews.length })}
           </p>
           <div className="mt-4 space-y-1.5">
             {[5, 4, 3, 2, 1].map((n) => {
@@ -209,11 +213,11 @@ function ReviewsSection({ destinationId }) {
               const pct = reviews.length ? (c / reviews.length) * 100 : 0;
               return (
                 <div key={n} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <span className="w-2">{n}</span>
+                  <span className="w-2">{num(n)}</span>
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                     <div className="h-full rounded-full bg-amber-400" style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="w-4 text-right">{c}</span>
+                  <span className="w-4 text-right">{num(c)}</span>
                 </div>
               );
             })}
@@ -221,7 +225,7 @@ function ReviewsSection({ destinationId }) {
         </div>
 
         <form onSubmit={submit} className="rounded-2xl bg-white p-5 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
-          <p className="font-semibold">{mine ? "Update your review" : "Share your experience"}</p>
+          <p className="font-semibold">{mine ? t("trip.updateYours") : t("trip.shareExperience")}</p>
           <div className="mt-3 flex items-center gap-1" onMouseLeave={() => setHover(0)}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -229,7 +233,7 @@ function ReviewsSection({ destinationId }) {
                 type="button"
                 onClick={() => setRating(n)}
                 onMouseEnter={() => setHover(n)}
-                aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                aria-label={t("trip.stars", { count: n })}
                 className="p-0.5"
               >
                 <Star size={28} className={(hover || rating) >= n ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"} />
@@ -242,12 +246,12 @@ function ReviewsSection({ destinationId }) {
             rows={3}
             maxLength={2000}
             disabled={!isAuthenticated}
-            placeholder={isAuthenticated ? "What did you like? Any tips for other travellers?" : "Log in to write a review"}
+            placeholder={isAuthenticated ? t("trip.reviewPlaceholder") : t("trip.loginToWrite")}
             className="mt-3 w-full rounded-xl border-0 bg-gray-50 p-3 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-brand-600 disabled:opacity-60 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button type="submit" disabled={submitting} className={buttonClass.primary}>
-              {!isAuthenticated ? "Log in to review" : submitting ? "Saving…" : mine ? "Update review" : "Post review"}
+              {!isAuthenticated ? t("trip.loginToReview") : submitting ? t("common.saving") : mine ? t("trip.update") : t("trip.post")}
             </button>
             {message && (
               <span className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
@@ -260,10 +264,10 @@ function ReviewsSection({ destinationId }) {
 
       <div className="mt-6 space-y-4">
         {loading ? (
-          <p className="text-sm text-gray-500">Loading reviews…</p>
+          <p className="text-sm text-gray-500">{t("trip.loadingReviews")}</p>
         ) : reviews.length === 0 ? (
           <p className="rounded-2xl bg-white p-5 text-sm text-gray-500 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:text-gray-400 dark:ring-white/10">
-            No reviews yet. Be the first to share your experience.
+            {t("trip.noReviews")}
           </p>
         ) : (
           reviews.map((r) => (
@@ -274,12 +278,12 @@ function ReviewsSection({ destinationId }) {
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold">
-                    {r.user_display_name || "Traveller"}
-                    {user && r.user_id === user.id && <span className="ml-2 text-xs font-medium text-brand-600">You</span>}
+                    {r.user_display_name || t("common.traveller")}
+                    {user && r.user_id === user.id && <span className="ml-2 text-xs font-medium text-brand-600">{t("common.you")}</span>}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <Stars value={r.rating} size={12} />
-                    <span>{new Date(r.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
+                    <span>{formatDate(r.created_at, { year: "numeric", month: "short", day: "numeric" })}</span>
                   </div>
                 </div>
               </div>
@@ -294,6 +298,8 @@ function ReviewsSection({ destinationId }) {
 
 function LocationCard({ trip }) {
   const { usable, error } = useGoogleMaps();
+  const { t, pick, tv } = useLang();
+  const name = pick(trip, "name");
   const hasPoint = trip.latitude != null && trip.longitude != null;
   const center = hasPoint ? { lat: trip.latitude, lng: trip.longitude } : { lat: 12.5657, lng: 104.991 };
   const directions = hasPoint
@@ -305,12 +311,12 @@ function LocationCard({ trip }) {
       <div className="h-64 bg-gray-100 dark:bg-gray-800">
         {usable ? (
           <GoogleMap mapContainerStyle={{ width: "100%", height: "100%" }} center={center} zoom={hasPoint ? 14 : 7} options={mapOptions}>
-            {hasPoint && <Marker position={center} title={trip.name} />}
+            {hasPoint && <Marker position={center} title={name} />}
           </GoogleMap>
         ) : error ? (
           // The interactive map is unavailable, so fall back to Google's key-free embed.
           <iframe
-            title={`Map of ${trip.name}`}
+            title={t("trip.mapOf", { name })}
             src={embedUrl(hasPoint ? { lat: trip.latitude, lng: trip.longitude } : { query: `${trip.name}, ${trip.province || ""}, Cambodia`, zoom: 10 })}
             className="h-full w-full border-0"
             loading="lazy"
@@ -321,14 +327,15 @@ function LocationCard({ trip }) {
           <div className="grid h-full place-items-center text-sm text-gray-500 dark:text-gray-400">
             <div className="text-center">
               <MapPin className="mx-auto mb-2 text-brand-600" />
-              Loading map…
+              {t("trip.loadingMap")}
             </div>
           </div>
         )}
       </div>
       <div className="p-5">
         <p className="flex items-center gap-2 font-semibold">
-          <MapPin size={18} className="text-brand-600" /> {trip.province ? `${trip.province}, Cambodia` : "Cambodia"}
+          <MapPin size={18} className="text-brand-600" />{" "}
+          {trip.province ? t("common.inPlace", { place: tv(trip.province) }) : t("common.cambodia")}
         </p>
         {hasPoint && (
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -336,7 +343,7 @@ function LocationCard({ trip }) {
           </p>
         )}
         <a href={directions} target="_blank" rel="noreferrer" className={`${buttonClass.primary} mt-4 w-full`}>
-          <Navigation size={16} /> Get directions
+          <Navigation size={16} /> {t("trip.directions")}
         </a>
       </div>
     </div>
@@ -364,6 +371,7 @@ export default function TripDetail() {
   const { isFavorite, toggleFavorite } = useTripContext();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { t, pick, tv } = useLang();
   const [lightbox, setLightbox] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -386,10 +394,10 @@ export default function TripDetail() {
   if (!trip) {
     return (
       <Container className="py-24 text-center">
-        <h1 className="text-2xl font-bold">Place not found</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">It may have been removed, or the link is wrong.</p>
+        <h1 className="text-2xl font-bold">{t("trip.notFound")}</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">{t("trip.notFoundText")}</p>
         <Link to="/discover" className={`${buttonClass.primary} mt-6`}>
-          <ArrowLeft size={16} /> Back to Discover
+          <ArrowLeft size={16} /> {t("trip.back")}
         </Link>
       </Container>
     );
@@ -397,12 +405,15 @@ export default function TripDetail() {
 
   const images = trip.images?.length ? trip.images : [trip.image];
   const liked = isFavorite(trip.id);
-  const description = trip.description || "";
+  const name = pick(trip, "name");
+  const description = pick(trip, "description") || "";
+  const article = pick(trip, "article");
+  const provinceLabel = tv(trip.province);
 
   const share = async () => {
     const url = window.location.href;
     try {
-      if (navigator.share) await navigator.share({ title: trip.name, url });
+      if (navigator.share) await navigator.share({ title: name, url });
       else {
         await navigator.clipboard.writeText(url);
         setCopied(true);
@@ -416,15 +427,15 @@ export default function TripDetail() {
   return (
     <>
       <Container className="pt-6 sm:pt-8">
-        <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
+        <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400" aria-label={t("trip.breadcrumb")}>
           <Link to="/discover" className="hover:text-gray-900 dark:hover:text-white">
-            Discover
+            {t("nav.discover")}
           </Link>
           {trip.province && (
             <>
               <span>/</span>
               <Link to={`/discover?province=${encodeURIComponent(trip.province)}`} className="hover:text-gray-900 dark:hover:text-white">
-                {trip.province}
+                {provinceLabel}
               </Link>
             </>
           )}
@@ -432,34 +443,34 @@ export default function TripDetail() {
 
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{trip.name}</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{name}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
               <a href="#reviews" className="hover:underline">
                 <RatingPill rating={trip.rating} count={trip.reviews} />
               </a>
               {trip.province && (
                 <span className="inline-flex items-center gap-1">
-                  <MapPin size={15} /> {trip.province}, Cambodia
+                  <MapPin size={15} /> {t("common.inPlace", { place: provinceLabel })}
                 </span>
               )}
             </div>
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={share} className={buttonClass.secondary}>
-              {copied ? <Check size={16} /> : <Share2 size={16} />} {copied ? "Link copied" : "Share"}
+              {copied ? <Check size={16} /> : <Share2 size={16} />} {copied ? t("common.linkCopied") : t("common.share")}
             </button>
             <button
               type="button"
               onClick={() => (isAuthenticated ? toggleFavorite(trip) : navigate("/login"))}
               className={liked ? `${buttonClass.secondary} !text-rose-600` : buttonClass.secondary}
             >
-              <Heart size={16} className={liked ? "fill-rose-500 text-rose-500" : ""} /> {liked ? "Saved" : "Save"}
+              <Heart size={16} className={liked ? "fill-rose-500 text-rose-500" : ""} /> {liked ? t("common.saved") : t("common.save")}
             </button>
           </div>
         </div>
 
         <div className="mt-6">
-          <Gallery images={images} name={trip.name} onOpen={setLightbox} />
+          <Gallery images={images} name={name} onOpen={setLightbox} />
         </div>
       </Container>
 
@@ -467,20 +478,20 @@ export default function TripDetail() {
         <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
           <div className="space-y-10">
             <div className="grid grid-cols-2 gap-3">
-              <InfoTile icon={Clock} label="Time needed" value={trip.duration} />
-              <InfoTile icon={CalendarRange} label="Best time to visit" value={trip.bestTime} />
-              <InfoTile icon={Ticket} label="Access" value={trip.access} />
-              <InfoTile icon={Accessibility} label="Difficulty" value={trip.accessibility} />
+              <InfoTile icon={Clock} label={t("trip.timeNeeded")} value={tv(trip.duration)} />
+              <InfoTile icon={CalendarRange} label={t("trip.bestTime")} value={tv(trip.bestTime)} />
+              <InfoTile icon={Ticket} label={t("trip.access")} value={tv(trip.access)} />
+              <InfoTile icon={Accessibility} label={t("trip.difficulty")} value={tv(trip.accessibility)} />
             </div>
 
             <section>
-              <h2 className="text-xl font-bold sm:text-2xl">About this place</h2>
+              <h2 className="text-xl font-bold sm:text-2xl">{t("trip.about")}</h2>
               <p
                 className={`mt-3 whitespace-pre-line text-[17px] leading-relaxed text-gray-700 dark:text-gray-300 ${
                   expanded ? "" : "line-clamp-6"
                 }`}
               >
-                {description || "No description yet."}
+                {description || t("trip.noDescription")}
               </p>
               {description.length > 400 && (
                 <button
@@ -488,11 +499,11 @@ export default function TripDetail() {
                   onClick={() => setExpanded((v) => !v)}
                   className="mt-2 font-semibold text-brand-600 hover:underline dark:text-brand-400"
                 >
-                  {expanded ? "Show less" : "Read more"}
+                  {expanded ? t("common.showLess") : t("common.readMore")}
                 </button>
               )}
-              {trip.article && (
-                <div className="mt-6 whitespace-pre-line leading-relaxed text-gray-700 dark:text-gray-300">{trip.article}</div>
+              {article && (
+                <div className="mt-6 whitespace-pre-line leading-relaxed text-gray-700 dark:text-gray-300">{article}</div>
               )}
             </section>
 
@@ -515,7 +526,7 @@ export default function TripDetail() {
         <section className="border-t border-brand-100 bg-brand-50/60 py-14 dark:border-gray-800 dark:bg-gray-900/40">
           <Container>
             <h2 className="mb-6 text-xl font-bold sm:text-2xl">
-              {nearby.some((t) => t.province === trip.province) ? `More in ${trip.province}` : "You may also like"}
+              {nearby.some((p) => p.province === trip.province) ? t("trip.moreIn", { province: provinceLabel }) : t("trip.alsoLike")}
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {nearby.map((t) => (

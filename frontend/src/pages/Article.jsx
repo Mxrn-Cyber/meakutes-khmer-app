@@ -5,6 +5,7 @@ import { useNewsEvents } from "../hooks/useNewsEvents";
 import CommentsPanel from "../components/CommentsPanel";
 import { Container, buttonClass } from "../components/ui";
 import { eventStatus, daysUntil, googleCalendarUrl, downloadIcs, dateBadge } from "../utils/eventDates";
+import { useLang } from "../i18n";
 
 function Fact({ icon: Icon, label, value }) {
   if (!value) return null;
@@ -24,6 +25,7 @@ function Fact({ icon: Icon, label, value }) {
 export default function Article() {
   const { id } = useParams();
   const { newsEvents, isLoading } = useNewsEvents();
+  const { t, pick, tv, locale } = useLang();
   const [copied, setCopied] = useState(false);
   const item = useMemo(() => newsEvents.find((e) => String(e.id) === String(id)), [newsEvents, id]);
   const related = useMemo(() => newsEvents.filter((e) => String(e.id) !== String(id)).slice(0, 3), [newsEvents, id]);
@@ -44,10 +46,10 @@ export default function Article() {
   if (!item) {
     return (
       <Container className="py-24 text-center">
-        <h1 className="text-2xl font-bold">Event not found</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">It may have been removed, or the link is wrong.</p>
+        <h1 className="text-2xl font-bold">{t("article.notFound")}</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">{t("article.notFoundText")}</p>
         <Link to="/news" className={`${buttonClass.primary} mt-6`}>
-          <ArrowLeft size={16} /> All events
+          <ArrowLeft size={16} /> {t("article.allEvents")}
         </Link>
       </Container>
     );
@@ -55,13 +57,19 @@ export default function Article() {
 
   const status = eventStatus(item);
   const days = daysUntil(item);
-  const badge = dateBadge(item);
-  const gcal = googleCalendarUrl(item);
+  const badge = dateBadge(item, locale);
+  const title = pick(item, "title");
+  const description = pick(item, "description");
+  const dateLabel = tv(item.date);
+  const location = tv(item.location);
+  // Calendar entries use the visitor's language too.
+  const calendarItem = { ...item, title, description };
+  const gcal = googleCalendarUrl(calendarItem);
 
   const share = async () => {
     const url = window.location.href;
     try {
-      if (navigator.share) await navigator.share({ title: item.title, url });
+      if (navigator.share) await navigator.share({ title, url });
       else {
         await navigator.clipboard.writeText(url);
         setCopied(true);
@@ -79,35 +87,35 @@ export default function Article() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-gray-950 via-gray-950/50 to-gray-950/20" />
         <Container className="flex min-h-[380px] flex-col justify-end pb-10 pt-24 sm:min-h-[460px]">
           <Link to="/news" className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur hover:bg-white/25">
-            <ArrowLeft size={16} /> All events
+            <ArrowLeft size={16} /> {t("article.allEvents")}
           </Link>
           <div className="mt-10 flex items-end gap-4">
             {badge && (
               <div className="hidden w-16 shrink-0 rounded-2xl bg-white py-2 text-center shadow-lift sm:block">
-                <p className="text-xs font-bold tracking-wide text-rose-600">{badge.month}</p>
+                <p className="truncate px-1 text-xs font-bold tracking-wide text-rose-600">{badge.month}</p>
                 <p className="text-2xl font-extrabold leading-none text-gray-900">{badge.day}</p>
               </div>
             )}
             <div>
               {status === "now" ? (
                 <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-semibold text-white">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Happening now
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> {t("news.now")}
                 </span>
               ) : status === "upcoming" && days != null ? (
                 <span className="mb-3 inline-block rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900">
-                  In {days} {days === 1 ? "day" : "days"}
+                  {t("common.inDays", { count: days })}
                 </span>
               ) : null}
-              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">{item.title}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">{title}</h1>
               <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-white/85">
                 {item.date && (
                   <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays size={16} /> {item.date}
+                    <CalendarDays size={16} /> {dateLabel}
                   </span>
                 )}
                 {item.location && (
                   <span className="inline-flex items-center gap-1.5">
-                    <MapPin size={16} /> {item.location}
+                    <MapPin size={16} /> {location}
                   </span>
                 )}
               </p>
@@ -119,33 +127,33 @@ export default function Article() {
       <Container className="py-10">
         <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
           <article>
-            <h2 className="text-xl font-bold sm:text-2xl">About this event</h2>
+            <h2 className="text-xl font-bold sm:text-2xl">{t("article.about")}</h2>
             <p className="mt-3 whitespace-pre-line text-[17px] leading-relaxed text-gray-700 dark:text-gray-300">
-              {item.description || "More details coming soon."}
+              {description || t("article.comingSoon")}
             </p>
           </article>
 
           <aside className="space-y-4 lg:row-span-2">
             <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10 lg:sticky lg:top-24">
               <div className="space-y-4">
-                <Fact icon={CalendarDays} label="Date" value={item.date} />
-                <Fact icon={MapPin} label="Location" value={item.location} />
-                <Fact icon={Clock} label="Best time" value={item.bestTime} />
-                <Fact icon={Accessibility} label="Accessibility" value={item.accessibility} />
+                <Fact icon={CalendarDays} label={t("article.date")} value={dateLabel} />
+                <Fact icon={MapPin} label={t("article.location")} value={location} />
+                <Fact icon={Clock} label={t("article.bestTime")} value={tv(item.bestTime)} />
+                <Fact icon={Accessibility} label={t("article.accessibility")} value={tv(item.accessibility)} />
               </div>
               <div className="mt-6 space-y-2">
                 {gcal && (
                   <a href={gcal} target="_blank" rel="noreferrer" className={`${buttonClass.primary} w-full`}>
-                    <CalendarPlus size={16} /> Add to Google Calendar
+                    <CalendarPlus size={16} /> {t("article.gcal")}
                   </a>
                 )}
                 {gcal && (
-                  <button type="button" onClick={() => downloadIcs(item)} className={`${buttonClass.secondary} w-full`}>
-                    <Download size={16} /> Other calendar (.ics)
+                  <button type="button" onClick={() => downloadIcs(calendarItem)} className={`${buttonClass.secondary} w-full`}>
+                    <Download size={16} /> {t("article.ics")}
                   </button>
                 )}
                 <button type="button" onClick={share} className={`${buttonClass.ghost} w-full`}>
-                  {copied ? <Check size={16} /> : <Share2 size={16} />} {copied ? "Link copied" : "Share this event"}
+                  {copied ? <Check size={16} /> : <Share2 size={16} />} {copied ? t("common.linkCopied") : t("article.share")}
                 </button>
               </div>
             </div>
@@ -160,7 +168,7 @@ export default function Article() {
       {related.length > 0 && (
         <section className="border-t border-brand-100 bg-brand-50/60 py-14 dark:border-gray-800 dark:bg-gray-900/40">
           <Container>
-            <h2 className="mb-6 text-xl font-bold sm:text-2xl">Other events</h2>
+            <h2 className="mb-6 text-xl font-bold sm:text-2xl">{t("article.others")}</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((e) => (
                 <Link
@@ -172,11 +180,11 @@ export default function Article() {
                     {e.pic && <img src={e.pic} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />}
                   </div>
                   <div className="p-5">
-                    <p className="text-sm font-medium text-brand-600 dark:text-brand-400">{e.date}</p>
-                    <h3 className="mt-1 font-bold group-hover:text-brand-600">{e.title}</h3>
+                    <p className="text-sm font-medium text-brand-600 dark:text-brand-400">{tv(e.date)}</p>
+                    <h3 className="mt-1 font-bold group-hover:text-brand-600">{pick(e, "title")}</h3>
                     {e.location && (
                       <p className="mt-1 flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                        <MapPin size={13} /> {e.location}
+                        <MapPin size={13} /> {tv(e.location)}
                       </p>
                     )}
                   </div>

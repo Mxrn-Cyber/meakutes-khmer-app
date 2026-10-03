@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { loadGoogleScript } from "../utils/googleAuth";
+import { useLang } from "../i18n";
 
 export function AuthLayout({ title, subtitle, children, footer, image = "/angkor-morning.png" }) {
+  const { t, lang } = useLang();
   return (
     <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-gray-900 lg:block">
@@ -10,14 +12,16 @@ export function AuthLayout({ title, subtitle, children, footer, image = "/angkor
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-950/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-12 text-white">
           <p className="text-3xl font-extrabold leading-tight">
-            Save the places you love.
+            {t("auth.sideTitle1")}
             <br />
-            Share your journey.
+            {t("auth.sideTitle2")}
           </p>
           <p className="mt-3 max-w-md text-white/80">
-            Rate places, write reviews, comment on events and keep a list of where you want to go next.
+            {t("auth.sideText")}
           </p>
-          <p className="mt-4 font-khmer text-white/70">សូមស្វាគមន៍! ស្វែងយល់ពីកម្ពុជាជាមួយយើង</p>
+          <p lang={lang === "km" ? "en" : "km"} className="mt-4 text-white/70">
+            {t("auth.sideKhmer")}
+          </p>
         </div>
       </div>
 
@@ -26,7 +30,7 @@ export function AuthLayout({ title, subtitle, children, footer, image = "/angkor
           <Link to="/" className="mb-8 inline-flex items-center gap-2.5 lg:hidden">
             <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl object-contain" />
             <span className="text-lg font-extrabold">
-              Meakutes<span className="text-brand-600">-Khmer</span>
+              <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
             </span>
           </Link>
           <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
@@ -45,6 +49,7 @@ export function GoogleButton({ text = "continue_with", onCredential }) {
   const callbackRef = useRef(onCredential);
   callbackRef.current = onCredential;
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const { t, lang } = useLang();
 
   useEffect(() => {
     if (!clientId) return;
@@ -56,6 +61,7 @@ export function GoogleButton({ text = "continue_with", onCredential }) {
           client_id: clientId,
           callback: (response) => callbackRef.current?.(response.credential),
         });
+        ref.current.innerHTML = ""; // re-rendered when the language changes
         const width = Math.min(400, Math.max(200, Math.floor(ref.current.offsetWidth)));
         window.google.accounts.id.renderButton(ref.current, {
           theme: "outline",
@@ -63,29 +69,31 @@ export function GoogleButton({ text = "continue_with", onCredential }) {
           shape: "pill",
           text,
           width,
+          locale: lang,
         });
       })
       .catch((err) => console.error(err));
     return () => {
       cancelled = true;
     };
-  }, [clientId, text]);
+  }, [clientId, text, lang]);
 
   if (!clientId) {
     return (
       <p className="rounded-xl bg-gray-100 px-4 py-3 text-center text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-        Google sign-in is not set up (VITE_GOOGLE_CLIENT_ID).
+        {t("auth.googleMissing")}
       </p>
     );
   }
   return <div ref={ref} className="flex min-h-[44px] w-full justify-center" />;
 }
 
-export function Divider({ children = "or" }) {
+export function Divider({ children }) {
+  const { t } = useLang();
   return (
     <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-gray-400">
       <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-      {children}
+      {children ?? t("auth.or")}
       <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
     </div>
   );

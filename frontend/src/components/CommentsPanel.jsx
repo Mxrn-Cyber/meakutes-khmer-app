@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/client";
+import { useLang } from "../i18n";
 
 // Comments for a news/event article (newsEventId) or a place (destinationId).
 export default function CommentsPanel({ newsEventId, destinationId }) {
   const { user, isAuthenticated, isEditor } = useAuth();
   const navigate = useNavigate();
+  const { t, te, num, formatDate } = useLang();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [body, setBody] = useState("");
@@ -22,7 +24,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
     api
       .listComments(target)
       .then((rows) => !cancelled && setComments(rows))
-      .catch(() => !cancelled && setError("Could not load comments."))
+      .catch(() => !cancelled && setError(t("comments.loadFailed")))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -41,7 +43,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
       setComments((rows) => [...rows, created]);
       setBody("");
     } catch (err) {
-      setError(err.message || "Could not post your comment.");
+      setError(te(err, "comments.postFailed"));
     } finally {
       setPosting(false);
     }
@@ -52,7 +54,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
       await api.deleteComment(id);
       setComments((rows) => rows.filter((c) => c.id !== id));
     } catch (err) {
-      setError(err.message || "Could not delete the comment.");
+      setError(te(err, "comments.deleteFailed"));
     }
   };
 
@@ -60,7 +62,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
     <section>
       <div>
         <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
-          Comments {comments.length > 0 && <span className="text-gray-400">({comments.length})</span>}
+          {t("comments.title")} {comments.length > 0 && <span className="text-gray-400">({num(comments.length)})</span>}
         </h2>
 
         <form onSubmit={submit} className="mb-6 rounded-2xl bg-white p-4 ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
@@ -70,7 +72,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
             maxLength={2000}
             rows={3}
             disabled={!isAuthenticated || posting}
-            placeholder={isAuthenticated ? "Write a comment..." : "Log in to comment"}
+            placeholder={isAuthenticated ? t("comments.placeholder") : t("comments.loginToComment")}
             className="w-full rounded-xl border-0 bg-gray-50 p-3 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-brand-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700"
           />
           <div className="mt-2 flex justify-end">
@@ -79,7 +81,7 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
               disabled={posting || (isAuthenticated && !body.trim())}
               className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
             >
-              {isAuthenticated ? (posting ? "Posting..." : "Post comment") : "Log in to comment"}
+              {isAuthenticated ? (posting ? t("comments.posting") : t("comments.post")) : t("comments.loginToComment")}
             </button>
           </div>
         </form>
@@ -87,9 +89,9 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
         {error && <p className="text-sm text-rose-600 mb-4">{error}</p>}
 
         {loading ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("comments.loading")}</p>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet. Start the conversation.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("comments.empty")}</p>
         ) : (
           <ul className="space-y-4">
             {comments.map((c) => (
@@ -108,17 +110,17 @@ export default function CommentsPanel({ newsEventId, destinationId }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {c.user_display_name || "Traveler"}
+                      {c.user_display_name || t("common.traveller")}
                     </span>
                     <span className="text-gray-400">
-                      {new Date(c.created_at).toLocaleDateString()}
+                      {formatDate(c.created_at, { year: "numeric", month: "short", day: "numeric" })}
                     </span>
                     {(user?.id === c.user_id || isEditor) && (
                       <button
                         onClick={() => remove(c.id)}
                         className="ml-auto text-xs text-rose-500 hover:underline"
                       >
-                        Delete
+                        {t("common.delete")}
                       </button>
                     )}
                   </div>

@@ -10,18 +10,36 @@
   }
   body {
     @apply font-sans bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
-    top: 0 !important; /* Google Translate pushes the page down; keep it in place */
   }
   :lang(km), .font-khmer {
     line-height: 1.7;
   }
 }
 
-/* Hide Google Translate's own toolbar; our navbar has the language switch. */
+/* Google Translate (only loaded for the extra languages): hide its own toolbar,
+   tooltips and highlights, and stop it pushing the page down. Our navbar has the menu. */
+body {
+  top: 0 !important;
+}
+iframe.skiptranslate,
 .goog-te-banner-frame,
-.skiptranslate > iframe,
-#goog-gt-tt {
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip {
   display: none !important;
+}
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Khmer text: letter-spacing breaks Khmer letter clusters, and tall vowels and
+   subscript consonants need more line height than Latin headings. */
+html[lang="km"] [class*="tracking-"] {
+  letter-spacing: 0;
+}
+html[lang="km"] :is(h1, h2, h3, h4) {
+  line-height: 1.5;
 }
 
 @layer components {

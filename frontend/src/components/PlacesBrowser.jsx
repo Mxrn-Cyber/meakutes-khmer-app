@@ -3,22 +3,25 @@ import { useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, X, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDestinations } from "../hooks/useDestinations";
 import { Container, PageHero, PlaceCard, PlaceCardSkeleton, EmptyState, buttonClass } from "./ui";
+import { useLang } from "../i18n";
 
 const PER_PAGE = 12;
 const ACCESS_ORDER = { Easy: 1, Moderate: 2, Challenging: 3 };
 
+// Labels are browse.sort* in the dictionaries. `name` is filled in per language below.
 const SORTS = {
-  rating: { label: "Top rated", fn: (a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0) },
-  reviews: { label: "Most reviewed", fn: (a, b) => (b.reviews || 0) - (a.reviews || 0) || (b.rating || 0) - (a.rating || 0) },
-  name: { label: "Name A–Z", fn: (a, b) => a.name.localeCompare(b.name) },
+  rating: { label: "browse.sortRating", fn: (a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0) },
+  reviews: { label: "browse.sortReviews", fn: (a, b) => (b.reviews || 0) - (a.reviews || 0) || (b.rating || 0) - (a.rating || 0) },
+  name: { label: "browse.sortName", fn: null },
   access: {
-    label: "Easiest to visit",
+    label: "browse.sortAccess",
     fn: (a, b) => (ACCESS_ORDER[a.accessibility] || 4) - (ACCESS_ORDER[b.accessibility] || 4),
   },
 };
 
 export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, defaultSort = "rating", showRank = false }) {
   const { destinations, isLoading, error } = useDestinations({ status: "published" });
+  const { t, pick, tv, num, lang } = useLang();
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState(params.get("q") || "");
   const province = params.get("province") || "";
@@ -43,24 +46,30 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
+  const collator = useMemo(() => new Intl.Collator(lang === "km" ? "km" : "en"), [lang]);
+
   const provinces = useMemo(
-    () => [...new Set(destinations.map((d) => d.province).filter(Boolean))].sort(),
-    [destinations]
+    () =>
+      [...new Set(destinations.map((d) => d.province).filter(Boolean))].sort((a, b) =>
+        collator.compare(tv(a), tv(b))
+      ),
+    [destinations, collator, tv]
   );
 
   const results = useMemo(() => {
     const q = (params.get("q") || "").toLowerCase();
+    // Match both languages, so "អង្គរ" and "Angkor" both find Angkor Wat.
+    const haystack = (d) =>
+      [d.name, d.name_km, d.description, d.description_km, d.province, d.province && tv(d.province)]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+    const byName = (a, b) => collator.compare(pick(a, "name"), pick(b, "name"));
     return destinations
       .filter((d) => !province || d.province === province)
-      .filter(
-        (d) =>
-          !q ||
-          d.name.toLowerCase().includes(q) ||
-          (d.description || "").toLowerCase().includes(q) ||
-          (d.province || "").toLowerCase().includes(q)
-      )
-      .sort(SORTS[sort].fn);
-  }, [destinations, params, province, sort]);
+      .filter((d) => !q || haystack(d).includes(q))
+      .sort(SORTS[sort].fn || byName);
+  }, [destinations, params, province, sort, collator, pick, tv]);
 
   const totalPages = Math.max(1, Math.ceil(results.length / PER_PAGE));
   const current = Math.min(page, totalPages);
@@ -93,12 +102,12 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, province or keyword"
-            aria-label="Search places"
+            placeholder={t("browse.searchPlaceholder")}
+            aria-label={t("browse.searchLabel")}
             className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
           />
           {query && (
-            <button type="button" onClick={() => setQuery("")} className="rounded-full p-2 text-gray-400 hover:bg-gray-100" aria-label="Clear search">
+            <button type="button" onClick={() => setQuery("")} className="rounded-full p-2 text-gray-400 hover:bg-gray-100" aria-label={t("browse.clearSearch")}>
               <X size={18} />
             </button>
           )}
@@ -109,16 +118,16 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
         <Container className="flex items-center gap-3 py-3">
           <div className="-mx-1 flex flex-1 gap-2 overflow-x-auto px-1 py-0.5 [scrollbar-width:none]">
             <button type="button" className={chip(!province)} onClick={() => setParam("province", "")}>
-              All provinces
+              {t("browse.allProvinces")}
             </button>
             {provinces.map((p) => (
               <button key={p} type="button" className={chip(province === p)} onClick={() => setParam("province", province === p ? "" : p)}>
-                {p}
+                {tv(p)}
               </button>
             ))}
           </div>
           <label className="relative hidden shrink-0 sm:block">
-            <span className="sr-only">Sort by</span>
+            <span className="sr-only">{t("browse.sortBy")}</span>
             <SlidersHorizontal size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <select
               value={sort}
@@ -127,7 +136,7 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
             >
               {Object.entries(SORTS).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v.label}
+                  {t(v.label)}
                 </option>
               ))}
             </select>
@@ -138,18 +147,19 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
       <Container className="py-8 sm:py-10">
         <div ref={resultsRef} className="scroll-mt-32 mb-6 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {isLoading ? "Loading places…" : (
+            {isLoading ? t("browse.loading") : (
               <>
-                <span className="font-semibold text-gray-900 dark:text-white">{results.length}</span>{" "}
-                {results.length === 1 ? "place" : "places"}
-                {province && <> in <span className="font-semibold text-gray-900 dark:text-white">{province}</span></>}
-                {params.get("q") && <> matching “{params.get("q")}”</>}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {t("browse.count", { count: results.length })}
+                </span>
+                {province && t("browse.inProvince", { province: tv(province) })}
+                {params.get("q") && t("browse.matching", { q: params.get("q") })}
               </>
             )}
           </p>
           <div className="flex items-center gap-2">
             <label className="sm:hidden">
-              <span className="sr-only">Sort by</span>
+              <span className="sr-only">{t("browse.sortBy")}</span>
               <select
                 value={sort}
                 onChange={(e) => setParam("sort", e.target.value === defaultSort ? "" : e.target.value)}
@@ -157,22 +167,22 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
               >
                 {Object.entries(SORTS).map(([k, v]) => (
                   <option key={k} value={k}>
-                    {v.label}
+                    {t(v.label)}
                   </option>
                 ))}
               </select>
             </label>
             {filtersActive && (
               <button type="button" onClick={clearAll} className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
-                Clear filters
+                {t("browse.clear")}
               </button>
             )}
           </div>
         </div>
 
         {error ? (
-          <EmptyState icon={MapPinned} title="Could not load places">
-            Please check your connection and try again.
+          <EmptyState icon={MapPinned} title={t("browse.errorTitle")}>
+            {t("browse.errorText")}
           </EmptyState>
         ) : isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -183,14 +193,14 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
         ) : results.length === 0 ? (
           <EmptyState
             icon={MapPinned}
-            title="No places found"
+            title={t("browse.emptyTitle")}
             action={
               <button type="button" onClick={clearAll} className={buttonClass.primary}>
-                Show all places
+                {t("browse.showAll")}
               </button>
             }
           >
-            Try another word or choose a different province.
+            {t("browse.emptyText")}
           </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -206,13 +216,13 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
         )}
 
         {totalPages > 1 && (
-          <nav className="mt-10 flex items-center justify-center gap-1" aria-label="Pages">
+          <nav className="mt-10 flex items-center justify-center gap-1" aria-label={t("browse.pages")}>
             <button
               type="button"
               onClick={() => goToPage(current - 1)}
               disabled={current === 1}
               className="grid h-10 w-10 place-items-center rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800"
-              aria-label="Previous page"
+              aria-label={t("browse.prev")}
             >
               <ChevronLeft size={18} />
             </button>
@@ -226,7 +236,7 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
                   n === current ? "bg-brand-600 text-white" : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >
-                {n}
+                {num(n)}
               </button>
             ))}
             <button
@@ -234,7 +244,7 @@ export default function PlacesBrowser({ heroImage, eyebrow, title, subtitle, def
               onClick={() => goToPage(current + 1)}
               disabled={current === totalPages}
               className="grid h-10 w-10 place-items-center rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-800"
-              aria-label="Next page"
+              aria-label={t("browse.next")}
             >
               <ChevronRight size={18} />
             </button>

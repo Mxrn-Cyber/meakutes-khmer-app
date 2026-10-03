@@ -1,19 +1,20 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Figma, Facebook, Linkedin, Music2 } from "lucide-react";
+import { useLang } from "../i18n";
 
 const EXPLORE = [
-  { to: "/discover", label: "Discover places" },
-  { to: "/popular", label: "Popular places" },
-  { to: "/news", label: "News & Events" },
-  { to: "/about", label: "About the project" },
+  { to: "/discover", key: "footer.discover" },
+  { to: "/popular", key: "footer.popular" },
+  { to: "/news", key: "footer.news" },
+  { to: "/about", key: "footer.about" },
 ];
 
 const ACCOUNT = [
-  { to: "/signup", label: "Create an account" },
-  { to: "/login", label: "Log in" },
-  { to: "/profile", label: "My profile" },
-  { to: "/terms", label: "Terms of use" },
-  { to: "/privacy", label: "Privacy policy" },
+  { to: "/signup", key: "footer.signup" },
+  { to: "/login", key: "footer.login" },
+  { to: "/profile", key: "footer.profile" },
+  { to: "/terms", key: "footer.terms" },
+  { to: "/privacy", key: "footer.privacy" },
 ];
 
 const SOCIAL = [
@@ -24,6 +25,7 @@ const SOCIAL = [
 ];
 
 export default function Footer() {
+  const { t, lang } = useLang();
   return (
     <footer className="mt-20 border-t border-brand-100 bg-brand-50/40 dark:border-gray-800 dark:bg-gray-950">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:px-8">
@@ -31,14 +33,15 @@ export default function Footer() {
           <Link to="/" className="flex items-center gap-2.5">
             <img src="/logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
             <span className="text-lg font-extrabold tracking-tight">
-              Meakutes<span className="text-brand-600">-Khmer</span>
+              <span translate="no">Meakutes<span className="text-brand-600">-Khmer</span></span>
             </span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Discover temples, beaches, mountains and festivals across Cambodia, and share your own
-            experience with other travellers.
+            {t("footer.blurb")}
           </p>
-          <p className="mt-2 font-khmer text-sm text-gray-500 dark:text-gray-500">ស្វែងរកភាពស្រស់ស្អាតនៃព្រះរាជាណាចក្រកម្ពុជា</p>
+          <p lang={lang === "km" ? "en" : "km"} className="mt-2 text-sm text-gray-500 dark:text-gray-500">
+            {t("footer.tagline")}
+          </p>
           <div className="mt-5 flex gap-2">
             {SOCIAL.map(({ Icon, href, label }) => (
               <a
@@ -55,18 +58,15 @@ export default function Footer() {
           </div>
         </div>
 
-        <FooterList title="Explore" items={EXPLORE} />
-        <FooterList title="Account" items={ACCOUNT} />
+        <FooterList title={t("footer.explore")} items={EXPLORE} />
+        <FooterList title={t("footer.account")} items={ACCOUNT} />
 
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Contact</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{t("footer.contact")}</h4>
           <ul className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <li className="flex gap-3">
               <MapPin size={16} className="mt-0.5 shrink-0 text-brand-600" />
-              <span>
-                #219A, Second Floor, Building A, Russian Federation Blvd, Teuk Laak 1, Toul Kork,
-                Phnom Penh, Cambodia
-              </span>
+              <span>{t("footer.address")}</span>
             </li>
             <li className="flex items-center gap-3">
               <Phone size={16} className="shrink-0 text-brand-600" />
@@ -86,9 +86,9 @@ export default function Footer() {
 
       <div className="border-t border-gray-200 dark:border-gray-800">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-gray-500 sm:flex-row sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Meakutes-Khmer. All rights reserved.</p>
+          <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
           <p>
-            Designed by{" "}
+            {t("footer.designedBy")}{" "}
             <a href="https://github.com/Mxrn-Cyber" target="_blank" rel="noreferrer" className="font-medium text-gray-700 hover:text-brand-600 dark:text-gray-300">
               Lao Thomorn
             </a>
@@ -100,6 +100,7 @@ export default function Footer() {
 }
 
 function FooterList({ title, items }) {
+  const { t } = useLang();
   return (
     <div>
       <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h4>
@@ -107,7 +108,7 @@ function FooterList({ title, items }) {
         {items.map((i) => (
           <li key={i.to}>
             <Link to={i.to} className="text-gray-600 transition hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400">
-              {i.label}
+              {t(i.key)}
             </Link>
           </li>
         ))}

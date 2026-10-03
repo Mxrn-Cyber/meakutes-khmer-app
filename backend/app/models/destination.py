@@ -11,6 +11,7 @@ class Destination(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
+    name_km: Mapped[str | None] = mapped_column(String(255), nullable=True)
     slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     province: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -20,7 +21,9 @@ class Destination(Base):
     accessibility: Mapped[str | None] = mapped_column(String(60), nullable=True)
     best_time: Mapped[str | None] = mapped_column(String(120), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description_km: Mapped[str | None] = mapped_column(Text, nullable=True)
     article: Mapped[str | None] = mapped_column(Text, nullable=True)
+    article_km: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="draft")  # draft | published
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
@@ -45,6 +48,7 @@ class Category(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    name_km: Mapped[str | None] = mapped_column(String(120), nullable=True)
     slug: Mapped[str] = mapped_column(String(120), unique=True)
 
 
@@ -53,6 +57,7 @@ class Tag(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    name_km: Mapped[str | None] = mapped_column(String(120), nullable=True)
     slug: Mapped[str] = mapped_column(String(120), unique=True)
 
 

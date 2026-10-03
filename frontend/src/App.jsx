@@ -16,7 +16,7 @@ import Loading from "./components/Loading.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import TripDetail from "./pages/TripDetail.jsx";
-import Translator from "./components/Translator.js";
+import { LanguageProvider, useLang } from "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { TripProvider } from "./context/TripContext.jsx";
 import { FeedbackProvider } from "./components/Feedback.jsx";
@@ -28,6 +28,20 @@ import AdminTaxonomy from "./admin/AdminTaxonomy.jsx";
 import AdminMedia from "./admin/AdminMedia.jsx";
 import AdminReviews from "./admin/AdminReviews.jsx";
 import AdminUsers from "./admin/AdminUsers.jsx";
+
+function NotFound() {
+  const { t } = useLang();
+  return (
+    <div className="mx-auto max-w-xl px-4 py-24 text-center">
+      <p className="text-sm font-semibold text-brand-600">404</p>
+      <h1 className="mt-2 text-3xl font-bold">{t("notFound.title")}</h1>
+      <p className="mt-3 text-gray-600 dark:text-gray-400">{t("notFound.text")}</p>
+      <a href="#/" className="mt-6 inline-block rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+        {t("notFound.back")}
+      </a>
+    </div>
+  );
+}
 
 function AppShell() {
   const { isLoading } = useAuth();
@@ -42,7 +56,6 @@ function AppShell() {
       {isLoading && <Loading />}
       {!isAdminArea && <Navbar />}
       {!isAdminArea && <div className="h-16" aria-hidden="true" />}
-      <Translator />
       <Main className={isAdminArea ? "" : "min-h-[60vh]"}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -81,17 +94,7 @@ function AppShell() {
           </Route>
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route
-            path="*"
-            element={
-              <div className="mx-auto max-w-xl px-4 py-24 text-center">
-                <p className="text-sm font-semibold text-brand-600">404</p>
-                <h1 className="mt-2 text-3xl font-bold">Page not found</h1>
-                <p className="mt-3 text-gray-600 dark:text-gray-400">The page you are looking for does not exist.</p>
-                <a href="#/" className="mt-6 inline-block rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Back to home</a>
-              </div>
-            }
-          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Main>
       {!isAdminArea && <Footer />}
@@ -101,15 +104,17 @@ function AppShell() {
 
 function App() {
   return (
-    <AuthProvider>
-      <TripProvider>
-        <HashRouter>
-          <FeedbackProvider>
-            <AppShell />
-          </FeedbackProvider>
-        </HashRouter>
-      </TripProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <TripProvider>
+          <HashRouter>
+            <FeedbackProvider>
+              <AppShell />
+            </FeedbackProvider>
+          </HashRouter>
+        </TripProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 
