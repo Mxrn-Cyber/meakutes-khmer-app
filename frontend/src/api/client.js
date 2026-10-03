@@ -122,6 +122,9 @@ export const api = {
   adminSetUserActive: (id, isActive) =>
     request(`/api/admin/users/${id}/active`, { method: "PUT", body: { is_active: isActive } }),
 
+  // Saves a cropped/resized copy as a new media item (the original is kept).
+  cropMedia: (id, crop) => request(`/api/media/${id}/crop`, { method: "POST", body: crop }),
+
   // ---- site photos (Admin > Site photos) ----
   listSiteImages: () => request("/api/site-images"),
   setSiteImage: (key, payload) => request(`/api/site-images/${key}`, { method: "PUT", body: payload }),

@@ -64,3 +64,22 @@ def delete(url: str | None) -> None:
         _r2_client().delete_object(Bucket=settings.r2_bucket, Key=url[len(r2_prefix):])
     elif url.startswith(local_prefix):
         (Path(settings.media_root) / url[len(local_prefix):]).unlink(missing_ok=True)
+
+
+def read(url: str) -> bytes:
+    """Return the bytes of a file stored with `save` (used to edit an existing image)."""
+    local_prefix = f"{settings.media_url_prefix}/"
+    r2_prefix = f"{settings.r2_public_url.rstrip('/')}/" if settings.r2_public_url else None
+
+    if r2_prefix and url.startswith(r2_prefix):
+        obj = _r2_client().get_object(Bucket=settings.r2_bucket, Key=url[len(r2_prefix):])
+        return obj["Body"].read()
+    if url.startswith(local_prefix):
+        return (Path(settings.media_root) / url[len(local_prefix):]).read_bytes()
+    if url.startswith(("http://", "https://")):
+        import requests
+
+        response = requests.get(url, timeout=20)
+        response.raise_for_status()
+        return response.content
+    raise FileNotFoundError(url)

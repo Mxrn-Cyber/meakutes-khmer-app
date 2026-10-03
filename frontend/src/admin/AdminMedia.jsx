@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload, Trash2, Copy, Ruler, ChevronDown } from "lucide-react";
+import { Upload, Trash2, Copy, Ruler, ChevronDown, Crop } from "lucide-react";
 import { api } from "../api/client";
 import { useConfirm, useToast } from "../components/Feedback";
 import { useAuth } from "../context/AuthContext";
 import { RATIO } from "../components/ui";
+import ImageCropper, { cropFileToBlob, blobToFile } from "../components/ImageCropper";
+
+const roundCrop = (p) => ({ x: Math.round(p.x), y: Math.round(p.y), width: Math.round(p.width), height: Math.round(p.height) });
 
 // Keep in sync with RATIO in components/ui.jsx.
 const SHAPES = [
@@ -105,35 +108,70 @@ const AdminMedia = () => {
   const toast = useToast();
   const { isAdmin } = useAuth();
   const [media, setMedia] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [sizes, setSizes] = useState({});
+  const [queue, setQueue] = useState([]); // new files waiting for crop
+  const [queueUrl, setQueueUrl] = useState(null);
+  const [editing, setEditing] = useState(null); // existing media being cropped
+  const [busy, setBusy] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!queue.length) return setQueueUrl(null);
+    const url = URL.createObjectURL(queue[0]);
+    setQueueUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [queue]);
+
+  const nextInQueue = () => setQueue((q) => q.slice(1));
+
+  const uploadOne = async (file) => {
+    setBusy(true);
+    try {
+      const warnings = sizeProblems(file.name, await readSize(file));
+      await api.uploadMedia(file);
+      load();
+      if (warnings.length) toast.info(`Uploaded, but please check: ${warnings.join(" ")}`);
+      else toast.success("Photo uploaded.");
+    } catch (err) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setBusy(false);
+      nextInQueue();
+    }
+  };
+
+  const cropAndUpload = async ({ pixels, rotation }) => {
+    const file = queue[0];
+    setBusy(true);
+    try {
+      const blob = await cropFileToBlob(file, pixels, rotation);
+      await uploadOne(blobToFile(blob, file.name));
+    } catch {
+      setBusy(false);
+      toast.error("Could not crop this photo. Try \"Upload as is\".");
+    }
+  };
+
+  const cropExisting = async ({ pixels, rotation }) => {
+    setBusy(true);
+    try {
+      await api.cropMedia(editing.id, { ...roundCrop(pixels), rotation });
+      setEditing(null);
+      load();
+      toast.success("Saved as a new photo. The original is still in the library.");
+    } catch (err) {
+      toast.error(err.message || "Could not crop this photo");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const load = () => api.listMedia().then(setMedia).catch(() => setMedia([]));
 
   useEffect(() => {
     load();
   }, []);
-
-  const handleFiles = async (files) => {
-    setError("");
-    setUploading(true);
-    const warnings = [];
-    try {
-      for (const file of files) {
-        warnings.push(...sizeProblems(file.name, await readSize(file)));
-        await api.uploadMedia(file);
-      }
-      load();
-      if (warnings.length) toast.info(`Uploaded, but please check: ${warnings.join(" ")}`);
-    } catch (err) {
-      setError(err.message || "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
 
   const handleDelete = async (item) => {
     if (!(await confirm({ title: "Please confirm", message: "Delete this image? It will be removed from any destination or news item using it.", confirmLabel: "Delete", danger: true }))) return;
@@ -160,15 +198,18 @@ const AdminMedia = () => {
         <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">Media Library</h1>
         <label className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 cursor-pointer">
           <Upload size={18} />
-          {uploading ? "Uploading..." : "Upload Images"}
+          {busy ? "Uploading..." : "Upload Images"}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"
             multiple
             className="hidden"
-            disabled={uploading}
-            onChange={(e) => e.target.files.length && handleFiles(Array.from(e.target.files))}
+            disabled={busy}
+            onChange={(e) => {
+              if (e.target.files.length) setQueue(Array.from(e.target.files));
+              e.target.value = "";
+            }}
           />
         </label>
       </div>
@@ -201,6 +242,14 @@ const AdminMedia = () => {
             <SizeBadge size={sizes[item.id]} />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
+                onClick={() => setEditing(item)}
+                title="Crop or resize (saves a copy)"
+                aria-label="Crop or resize"
+                className="p-2 bg-white/90 rounded-full text-gray-800 hover:bg-white"
+              >
+                <Crop size={16} />
+              </button>
+              <button
                 onClick={() => copyUrl(item)}
                 title="Copy URL"
                 className="p-2 bg-white/90 rounded-full text-gray-800 hover:bg-white"
@@ -223,6 +272,33 @@ const AdminMedia = () => {
           <p className="col-span-full text-center text-gray-400 py-16">No images uploaded yet.</p>
         )}
       </div>
+      {queueUrl && queue[0] && (
+        <ImageCropper
+          key={queueUrl}
+          src={queueUrl}
+          title={`Crop before uploading${queue.length > 1 ? ` (${queue.length} left)` : ""}: ${queue[0].name}`}
+          aspect={4 / 3}
+          minSize={{ w: 1200, h: 900 }}
+          doneLabel="Crop and upload"
+          busy={busy}
+          extraAction={{ label: "Upload as is", onClick: () => uploadOne(queue[0]) }}
+          onCancel={nextInQueue}
+          onDone={cropAndUpload}
+        />
+      )}
+
+      {editing && (
+        <ImageCropper
+          src={api.mediaUrl(editing.url)}
+          title="Crop or resize (saves a new copy)"
+          aspect={4 / 3}
+          minSize={{ w: 1200, h: 900 }}
+          doneLabel="Save copy"
+          busy={busy}
+          onCancel={() => setEditing(null)}
+          onDone={cropExisting}
+        />
+      )}
     </div>
   );
 };

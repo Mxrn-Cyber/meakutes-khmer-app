@@ -10,6 +10,7 @@ import { api } from "../api/client";
 import { Container, PlaceCard, EmptyState, buttonClass, inputClass } from "../components/ui";
 import { Alert, Field } from "../components/AuthLayout";
 import { useLang } from "../i18n";
+import ImageCropper, { cropFileToBlob, blobToFile } from "../components/ImageCropper";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 const TABS = [
@@ -68,6 +69,7 @@ export default function Profile() {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [cropSrc, setCropSrc] = useState(null); // { file, url } while the crop dialog is open
 
   // Password
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
@@ -102,9 +104,26 @@ export default function Profile() {
     setSuccess("");
     if (!file) return;
     if (!file.type.startsWith("image/")) return setError(t("profile.notImage"));
+    e.target.value = "";
+    setCropSrc({ file, url: URL.createObjectURL(file) });
+  };
+
+  const usePhoto = (file) => {
+    URL.revokeObjectURL(cropSrc.url);
+    setCropSrc(null);
+    // Checked after cropping: a big phone photo usually shrinks well under the limit.
     if (file.size > MAX_PHOTO_BYTES) return setError(t("profile.tooBig"));
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const finishCrop = async ({ pixels, rotation }) => {
+    try {
+      const blob = await cropFileToBlob(cropSrc.file, pixels, rotation, 800);
+      usePhoto(blobToFile(blob, cropSrc.file.name));
+    } catch {
+      usePhoto(cropSrc.file);
+    }
   };
 
   const savePhoto = async () => {
@@ -363,6 +382,22 @@ export default function Profile() {
           )}
         </div>
       </Container>
+
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc.url}
+          title={t("crop.avatarTitle")}
+          aspect={1}
+          lockAspect
+          doneLabel={t("crop.avatarDone")}
+          extraAction={{ label: t("crop.asIs"), onClick: () => usePhoto(cropSrc.file) }}
+          onCancel={() => {
+            URL.revokeObjectURL(cropSrc.url);
+            setCropSrc(null);
+          }}
+          onDone={finishCrop}
+        />
+      )}
     </>
   );
 }

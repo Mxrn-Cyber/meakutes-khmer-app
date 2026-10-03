@@ -6,13 +6,15 @@ import { RATIO } from "../components/ui";
 import { FadeImg } from "../components/motion";
 import { SITE_IMAGE_GROUPS, useSiteImagesAdmin } from "../siteImages";
 import km from "../i18n/km";
+import ImageCropper, { cropFileToBlob, blobToFile } from "../components/ImageCropper";
 import en from "../i18n/en";
 
 const SHAPES = {
-  photo: { ratio: RATIO.photo, label: "4:3", size: "1600 × 1200 px" },
-  banner: { ratio: RATIO.banner, label: "16:9", size: "1920 × 1080 px" },
-  square: { ratio: RATIO.square, label: "1:1", size: "600 × 600 px" },
+  photo: { ratio: RATIO.photo, label: "4:3", size: "1600 × 1200 px", aspect: 4 / 3, min: { w: 1200, h: 900 } },
+  banner: { ratio: RATIO.banner, label: "16:9", size: "1920 × 1080 px", aspect: 16 / 9, min: { w: 1600, h: 900 } },
+  square: { ratio: RATIO.square, label: "1:1", size: "600 × 600 px", aspect: 1, min: { w: 400, h: 400 } },
 };
+const roundCrop = (p) => ({ x: Math.round(p.x), y: Math.round(p.y), width: Math.round(p.width), height: Math.round(p.height) });
 
 const inputClass =
   "w-full rounded-xl border-0 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 disabled:opacity-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700";
@@ -21,28 +23,51 @@ function MediaPicker({ slot, onClose, onPick }) {
   const toast = useToast();
   const [media, setMedia] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [cropping, setCropping] = useState(null); // { file, url } or { media }
   const fileRef = useRef(null);
   const shape = SHAPES[slot.shape];
 
   useEffect(() => {
     api.listMedia().then(setMedia).catch(() => setMedia([]));
-    const onKey = (e) => e.key === "Escape" && onClose();
+    const onKey = (e) => e.key === "Escape" && !cropping && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, cropping]);
 
-  const upload = async (file) => {
-    if (!file) return;
+  useEffect(() => () => cropping?.url && URL.revokeObjectURL(cropping.url), [cropping]);
+
+  // Every photo goes through the cropper, already set to this slot's shape.
+  const startUpload = (file) => {
+    if (fileRef.current) fileRef.current.value = "";
+    if (file) setCropping({ file, url: URL.createObjectURL(file) });
+  };
+
+  const uploadFile = async (file) => {
     setUploading(true);
     try {
-      const created = await api.uploadMedia(file);
-      onPick(created);
+      onPick(await api.uploadMedia(file));
     } catch (err) {
       toast.error(err.message || "Upload failed");
-    } finally {
       setUploading(false);
     }
   };
+
+  const finishCrop = async ({ pixels, rotation }) => {
+    setUploading(true);
+    try {
+      if (cropping.file) {
+        const blob = await cropFileToBlob(cropping.file, pixels, rotation);
+        onPick(await api.uploadMedia(blobToFile(blob, cropping.file.name)));
+      } else {
+        onPick(await api.cropMedia(cropping.media.id, { ...roundCrop(pixels), rotation }));
+      }
+    } catch (err) {
+      toast.error(err.message || "Could not crop this photo");
+      setUploading(false);
+    }
+  };
+
+  const useAsIs = () => (cropping.file ? uploadFile(cropping.file) : onPick(cropping.media));
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={`Choose a photo for ${slot.label}`}>
@@ -70,7 +95,7 @@ function MediaPicker({ slot, onClose, onPick }) {
               accept="image/png,image/jpeg,image/webp"
               className="sr-only"
               disabled={uploading}
-              onChange={(e) => upload(e.target.files?.[0])}
+              onChange={(e) => startUpload(e.target.files?.[0])}
             />
           </label>
 
@@ -89,7 +114,7 @@ function MediaPicker({ slot, onClose, onPick }) {
                 <button
                   key={m.id}
                   type="button"
-                  onClick={() => onPick(m)}
+                  onClick={() => setCropping({ media: m })}
                   className={`group relative ${shape.ratio} overflow-hidden rounded-xl bg-gray-100 ring-2 ring-transparent transition hover:ring-brand-500 focus-visible:ring-brand-500 dark:bg-gray-800`}
                 >
                   <FadeImg src={api.mediaUrl(m.url)} alt={m.alt_text || ""} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -102,6 +127,21 @@ function MediaPicker({ slot, onClose, onPick }) {
           )}
         </div>
       </div>
+
+      {cropping && (
+        <ImageCropper
+          src={cropping.url || api.mediaUrl(cropping.media.url)}
+          title={`Fit the photo to ${slot.label} (${shape.label})`}
+          aspect={shape.aspect}
+          lockAspect
+          minSize={shape.min}
+          doneLabel="Crop and use"
+          busy={uploading}
+          extraAction={{ label: "Use as is", onClick: useAsIs }}
+          onCancel={() => setCropping(null)}
+          onDone={finishCrop}
+        />
+      )}
     </div>
   );
 }

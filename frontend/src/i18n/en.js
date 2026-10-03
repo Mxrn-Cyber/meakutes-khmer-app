@@ -512,6 +512,18 @@ const en = {
     ],
   },
 
+  crop: {
+    close: "Close",
+    zoom: "Zoom",
+    rotate: "Rotate",
+    shape: "Shape",
+    size: "Saved size: {w} × {h} px",
+    small: "smaller than the recommended {w} × {h}, it may look blurry",
+    avatarTitle: "Crop your profile photo",
+    avatarDone: "Use this photo",
+    asIs: "Use as is",
+  },
+
   notFound: {
     title: "Page not found",
     text: "The page you are looking for does not exist.",
